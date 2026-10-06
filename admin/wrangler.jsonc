@@ -4,10 +4,10 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-05",
   "assets": { "directory": "./dist", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
-  "kv_namespaces": [{ "binding": "SESSIONS", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }],
+  "kv_namespaces": [{ "binding": "SESSIONS", "id": "efac8ffae5b746cf8d5818d94679371e" }],
   "vars": {
-    "GITHUB_OWNER": "bingqilin456", "GITHUB_REPO": "", "GITHUB_BRANCH": "master",
-    "BLOG_URL": "https://bingqilin456.github.io/", "APP_ORIGIN": "http://127.0.0.1:5173",
-    "GITHUB_CLIENT_ID": "", "ALLOWED_GITHUB_USERS": "bingqilin456"
+    "GITHUB_OWNER": "bingqilin456", "GITHUB_REPO": "bingqilin456.github.io", "GITHUB_BRANCH": "master",
+    "BLOG_URL": "https://bingqilin456.github.io/", "APP_ORIGIN": "https://bql-blog-admin.bingqilin0703.workers.dev",
+    "GITHUB_CLIENT_ID": "Ov23liJZ6nxuvY5NCbWC", "ALLOWED_GITHUB_USERS": "bingqilin456"
   }
 }
