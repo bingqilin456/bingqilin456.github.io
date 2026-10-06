@@ -1,0 +1,92 @@
+---
+import Icon from "@/components/common/Icon.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { getArticleListPaginationItems } from "@/utils/article-list-pagination";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	currentPage: number;
+	totalPages: number;
+}
+
+const { currentPage, totalPages } = Astro.props;
+const items = getArticleListPaginationItems(currentPage, totalPages, 5);
+const previousPage = currentPage > 1 ? currentPage - 1 : null;
+const nextPage = currentPage < totalPages ? currentPage + 1 : null;
+
+function getPageUrl(page: number): string {
+	return page === 1 ? url("/list/") : url(`/list/${page}/`);
+}
+
+function pageAriaLabel(page: number): string {
+	return `${i18n(I18nKey.paginationPage)} ${page} ${i18n(I18nKey.bangumiPage)}`;
+}
+---
+
+{totalPages > 1 && (
+	<nav class="article-list-pagination" aria-label={i18n(I18nKey.paginationNav)}>
+		<div class="article-list-pagination__inner">
+			{previousPage ? (
+				<a
+					href={getPageUrl(previousPage)}
+					class="article-list-pagination__btn"
+					aria-label={i18n(I18nKey.paginationPrev)}
+				>
+					<Icon name="material-symbols:chevron-left-rounded" width="1.5em" height="1.5em" />
+				</a>
+			) : (
+				<span
+					class="article-list-pagination__btn is-disabled"
+					aria-disabled="true"
+					aria-label={i18n(I18nKey.paginationPrev)}
+				>
+					<Icon name="material-symbols:chevron-left-rounded" width="1.5em" height="1.5em" />
+				</span>
+			)}
+
+			<div class="article-list-pagination__pages">
+				{items.map((item) =>
+					item.kind === "page" ? (
+						item.page === currentPage ? (
+							<span
+								class="article-list-pagination__page is-active"
+								aria-current="page"
+							>
+								{item.page}
+							</span>
+						) : (
+							<a
+								href={getPageUrl(item.page)}
+								class="article-list-pagination__page"
+								aria-label={pageAriaLabel(item.page)}
+							>
+								{item.page}
+							</a>
+						)
+					) : (
+						<span class="article-list-pagination__ellipsis" aria-hidden="true">...</span>
+					),
+				)}
+			</div>
+
+			{nextPage ? (
+				<a
+					href={getPageUrl(nextPage)}
+					class="article-list-pagination__btn"
+					aria-label={i18n(I18nKey.paginationNext)}
+				>
+					<Icon name="material-symbols:chevron-right-rounded" width="1.5em" height="1.5em" />
+				</a>
+			) : (
+				<span
+					class="article-list-pagination__btn is-disabled"
+					aria-disabled="true"
+					aria-label={i18n(I18nKey.paginationNext)}
+				>
+					<Icon name="material-symbols:chevron-right-rounded" width="1.5em" height="1.5em" />
+				</span>
+			)}
+		</div>
+	</nav>
+)}

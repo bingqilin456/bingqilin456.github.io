@@ -1,0 +1,160 @@
+---
+import Icon from "@components/common/Icon.astro";
+import { commentConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { getPostUrlBySlug } from "@/utils/url-utils";
+
+export interface Props {
+	isHome?: boolean;
+	id?: string;
+	path?: string;
+	compact?: boolean;
+}
+
+const { isHome, id, path = "", compact } = Astro.props;
+
+const type = commentConfig.type;
+const enabled = !isHome && id;
+const umamiConfig = siteConfig.analytics?.umamiAnalytics;
+const umamiPageviewsEnabled =
+	!!umamiConfig?.pageviews?.enabled &&
+	!!umamiConfig.shareId &&
+	!!umamiConfig.scriptUrl;
+const umamiApiBase = umamiConfig?.scriptUrl
+	? new URL(umamiConfig.scriptUrl).origin
+	: "";
+const umamiPageviewPath = path || (id ? getPostUrlBySlug(id) : "");
+
+const visitorConfigMap: Record<
+	string,
+	{ enabled: boolean; selectorId: string; dataAttr?: string; dataPath?: string }
+> = {
+	twikoo: {
+		enabled: !!commentConfig.twikoo?.visitorCount,
+		selectorId: "twikoo_visitors",
+	},
+	waline: {
+		enabled: !!commentConfig.waline?.visitorCount,
+		selectorId: "",
+		dataAttr: "waline-pageview-count",
+		dataPath: path,
+	},
+	artalk: {
+		enabled: !!commentConfig.artalk?.visitorCount,
+		selectorId: "",
+		dataAttr: "artalk-pv-count",
+		dataPath: path,
+	},
+};
+
+const config = visitorConfigMap[type];
+---
+
+{enabled && umamiPageviewsEnabled && (
+  <div
+    class="flex items-center"
+    data-umami-pageview
+    data-umami-api-base={umamiApiBase}
+    data-umami-pageview-path={umamiPageviewPath}
+    data-umami-share-id={umamiConfig?.shareId}
+  >
+    {compact ? (
+      <>
+        <span class="text-50 text-sm font-medium" data-umami-pageview-value>-</span>
+        <span class="text-50 text-sm font-medium" style="margin-left:0.15rem">
+          {i18n(I18nKey.pageViews)}
+        </span>
+      </>
+    ) : (
+      <>
+        <div class="meta-icon">
+          <Icon name="material-symbols:visibility-outline-rounded" class="text-xl" />
+        </div>
+        <span class="text-50 text-sm font-medium mr-1">
+          {i18n(I18nKey.pageViews)}
+        </span>
+        <span class="text-50 text-sm font-medium" data-umami-pageview-value>
+          {i18n(I18nKey.pageViewsLoading)}
+        </span>
+      </>
+    )}
+  </div>
+)}
+
+{enabled && !umamiPageviewsEnabled && config?.enabled && (
+  <div class="flex items-center">
+    {compact ? (
+      <>
+        <span
+          class="text-50 text-sm font-medium"
+          id={config.selectorId || undefined}
+          class:list={[config.dataAttr]}
+          data-path={config.dataPath || undefined}
+        >-</span>
+        <span class="text-50 text-sm font-medium" style="margin-left:0.15rem">
+          {i18n(I18nKey.pageViews)}
+        </span>
+      </>
+    ) : (
+      <>
+        <div class="meta-icon">
+          <Icon name="material-symbols:visibility-outline-rounded" class="text-xl" />
+        </div>
+        <span class="text-50 text-sm font-medium mr-1">
+          {i18n(I18nKey.pageViews)}
+        </span>
+        <span
+          class="text-50 text-sm font-medium"
+          id={config.selectorId || undefined}
+          class:list={[config.dataAttr]}
+          data-path={config.dataPath || undefined}
+        >
+          {i18n(I18nKey.pageViewsLoading)}
+        </span>
+      </>
+    )}
+  </div>
+)}
+
+<script>
+	import {
+		getUmamiPageviewLookup,
+		normalizeUmamiPageviewPath,
+	} from "@/utils/umami-pageviews";
+	import { definePageIsland } from "@/utils/swup-lifecycle";
+
+	async function fillUmamiPageviews() {
+		const nodes = document.querySelectorAll<HTMLElement>("[data-umami-pageview]");
+		if (nodes.length === 0) return;
+
+		const first = nodes[0];
+		const apiBase = first.dataset.umamiApiBase;
+		const shareId = first.dataset.umamiShareId;
+		if (!apiBase || !shareId) return;
+
+		try {
+			const lookup = await getUmamiPageviewLookup({ apiBase, shareId });
+			nodes.forEach((node) => {
+				const value = node.querySelector<HTMLElement>("[data-umami-pageview-value]");
+				if (!value) return;
+				const path = normalizeUmamiPageviewPath(node.dataset.umamiPageviewPath || "");
+				value.textContent = (lookup.get(path) || 0).toLocaleString();
+			});
+		} catch {
+			nodes.forEach((node) => {
+				const value = node.querySelector<HTMLElement>("[data-umami-pageview-value]");
+				if (value) value.textContent = "—";
+			});
+		}
+	}
+
+	function run() {
+		void fillUmamiPageviews();
+	}
+
+	// 注意：astro:page-load 是 @swup/astro 挂在 swup 的 page:view 上桥接出来的，
+	// **首次加载不会触发**（直接打开页面没有 visit）。所以不能只挂它，
+	// 首次那一次由 definePageIsland 统一补上，一次导航也只会打一次 umami 请求
+	definePageIsland({ name: "visitor-count", mount: run });
+</script>

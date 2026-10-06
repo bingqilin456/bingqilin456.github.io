@@ -1,0 +1,76 @@
+---
+import Icon from "@components/common/Icon.astro";
+import type { NavBarLink } from "@/types/config";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	link: NavBarLink;
+	/** 在导航栏中的序号，与共享下拉面板的内容页（data-dropdown-page）配对 */
+	index: number;
+	class?: string;
+}
+
+const { link, index, class: className } = Astro.props;
+
+// 检查 link 是否存在
+if (!link) {
+	return null;
+}
+
+// 子菜单内容页由 Navbar.astro 集中渲染进共享面板，这里只输出触发器
+const hasChildren = !!link.children && link.children.length > 0;
+---
+
+<div
+	class:list={["dropdown-container", className]}
+	data-dropdown
+	data-dropdown-index={index}
+	data-active-path-prefixes={link.activePathPrefixes?.join(" ")}
+>
+	{hasChildren ? (
+		<button
+			class="btn-plain scale-animation rounded-lg h-9 font-bold px-3 pr-7 active:scale-95 dropdown-trigger relative"
+			aria-expanded="false"
+			aria-haspopup="true"
+			data-dropdown-trigger
+		>
+			<div class="flex items-center gap-1.5">
+				{link.icon && (
+					<span class="navbar-trigger-icon" data-navbar-icon-template aria-hidden="true">
+						<Icon name={link.icon} is:inline class="text-[1.05rem]" />
+					</span>
+				)}
+				{link.name}
+			</div>
+			<Icon name="material-symbols:keyboard-arrow-down-rounded" is:inline class="text-[1.1rem] transition-transform duration-200 dropdown-arrow absolute right-2.5 top-1/2 -translate-y-1/2" />
+		</button>
+	) : (
+		<a
+			aria-label={link.name}
+			href={link.external ? link.url : url(link.url)}
+			target={link.external ? "_blank" : null}
+			class="btn-plain scale-animation rounded-lg h-9 font-bold px-3 active:scale-95"
+		>
+			<div class="flex items-center gap-1.5">
+				{link.icon && (
+					<span class="navbar-trigger-icon" data-navbar-icon-template aria-hidden="true">
+						<Icon name={link.icon} is:inline class="text-[1.05rem]" />
+					</span>
+				)}
+				{link.name}
+				{link.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.8rem] transition -translate-y-px ml-1 text-black/20 dark:text-white/20" />}
+			</div>
+		</a>
+	)}
+</div>
+
+<!-- 样式已迁移至 src/styles/layout/dropdown-menu.css -->
+
+<script>
+	import { initNavbarDropdownDelegation } from "@/utils/navbar-dropdown-controller";
+	import { definePersistentIsland } from "@/utils/swup-lifecycle";
+
+	// 点击/键盘委托在 document 上，导航栏常驻只需注册一次；
+	// 悬停跟随逻辑在 Navbar.astro 的 hover-slider 岛里调用同一控制器
+	definePersistentIsland("dropdown-menu", initNavbarDropdownDelegation);
+</script>

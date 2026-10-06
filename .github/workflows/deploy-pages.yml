@@ -1,0 +1,76 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ master ]
+  # 允许手动触发，便于在正式推送前先跑一次构建
+  workflow_dispatch:
+
+# 同一分支只保留最新一次部署，避免旧提交覆盖新产物
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      # 先装 Node：仓库的 preinstall 由 only-allow 强制 pnpm
+      - name: Setup Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          # Astro 7.1.6 的 engines 要求 node >= 22.12.0（见 node_modules/astro/package.json）
+          node-version: 22.x
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # pnpm 版本取自 package.json 的 packageManager 字段，此处不覆盖
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Astro check
+        run: pnpm check
+
+      - name: Type check
+        run: pnpm type-check
+
+      # 只做只读检查，不用 pnpm lint（它带 --write 会改文件）
+      - name: Biome check
+        run: pnpm exec biome check ./src
+
+      - name: Build
+        run: pnpm build
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          # pnpm build 已跑完 pagefind，dist/ 是完整产物
+          path: dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

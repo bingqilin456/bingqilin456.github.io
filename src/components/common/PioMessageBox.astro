@@ -1,0 +1,132 @@
+---
+// 消息框公共组件，供 Live2D / Spine 看板娘共用。
+// 外观全部在 src/styles/components/model-message.css 里（纯线条黑白 + 描边箭头），
+// 这里只负责算位置：贴着模型上方放，放不下就翻到下方，箭头始终指回模型中心。
+---
+
+<script>
+	const EDGE_PADDING = 10;
+	const ARROW_GAP = 24;
+
+	let currentMessageContainer: HTMLDivElement | null = null;
+	let hideMessageTimer: number | null = null;
+
+	function removeContainer(container: HTMLDivElement | null) {
+		if (!container) return;
+		container.remove();
+		if (currentMessageContainer === container) {
+			currentMessageContainer = null;
+		}
+	}
+
+	function clearAllContainers() {
+		document
+			.querySelectorAll(".model-message-container")
+			.forEach((el) => el.remove());
+	}
+
+	/**
+	 * 把气泡放到模型旁边。
+	 * estimate=true 时按估算尺寸先落一版并藏起箭头，等拿到真实尺寸再修一次，
+	 * 免得箭头方向先下后上地跳一下。
+	 */
+	function place(
+		container: HTMLDivElement,
+		arrow: HTMLDivElement,
+		anchorRect: DOMRect,
+		centerX: number,
+		width: number,
+		height: number,
+		estimate: boolean,
+	) {
+		const minX = EDGE_PADDING + width / 2;
+		const maxX = window.innerWidth - EDGE_PADDING - width / 2;
+		const x = Math.min(Math.max(centerX, minX), maxX);
+
+		let y = anchorRect.top - height - ARROW_GAP;
+		let above = true;
+		if (y < EDGE_PADDING) {
+			y = anchorRect.bottom + ARROW_GAP;
+			above = false;
+		}
+		y = Math.min(y, window.innerHeight - height - EDGE_PADDING);
+
+		container.style.left = `${x}px`;
+		container.style.top = `${y}px`;
+
+		// 箭头指向模型中心，但不许越出气泡两端
+		const maxOffset = width / 2 - 20;
+		const offset = Math.max(-maxOffset, Math.min(maxOffset, centerX - x));
+		arrow.style.setProperty("--arrow-offset", `${offset}px`);
+		arrow.classList.toggle("is-down", above);
+		arrow.classList.toggle("is-up", !above);
+		arrow.style.visibility = estimate ? "hidden" : "";
+	}
+
+	// 消息显示函数
+	export function showMessage(
+		message: string,
+		options: { containerId?: string; displayTime?: number } = {},
+	) {
+		if (!message || !message.trim()) return;
+
+		if (hideMessageTimer !== null) {
+			clearTimeout(hideMessageTimer);
+			hideMessageTimer = null;
+		}
+		removeContainer(currentMessageContainer);
+		clearAllContainers();
+
+		const container = document.createElement("div");
+		container.className = "model-message-container";
+
+		const bubble = document.createElement("div");
+		bubble.className = "model-message";
+		bubble.textContent = message;
+
+		const arrow = document.createElement("div");
+		arrow.className = "model-message-arrow";
+
+		bubble.appendChild(arrow);
+		container.appendChild(bubble);
+		document.body.appendChild(container);
+		currentMessageContainer = container;
+
+		const anchor = document.getElementById(
+			options.containerId || "model-container",
+		);
+		if (anchor) {
+			const rect = anchor.getBoundingClientRect();
+			const centerX = rect.left + rect.width / 2;
+			place(container, arrow, rect, centerX, 240, 60, true);
+			requestAnimationFrame(() => {
+				const box = container.getBoundingClientRect();
+				place(container, arrow, rect, centerX, box.width, box.height, false);
+			});
+		}
+
+		requestAnimationFrame(() => container.classList.add("is-visible"));
+
+		const displayTime = options.displayTime || 3000;
+		hideMessageTimer = window.setTimeout(() => {
+			container.classList.remove("is-visible");
+			hideMessageTimer = window.setTimeout(() => {
+				removeContainer(container);
+			}, 240);
+		}, displayTime);
+	}
+
+	// 清理消息函数
+	export function clearMessage() {
+		if (hideMessageTimer !== null) {
+			clearTimeout(hideMessageTimer);
+			hideMessageTimer = null;
+		}
+		removeContainer(currentMessageContainer);
+		clearAllContainers();
+	}
+
+	// 将函数暴露到全局作用域
+	(window as any).showModelMessage = showMessage;
+	(window as any).clearModelMessage = clearMessage;
+</script>

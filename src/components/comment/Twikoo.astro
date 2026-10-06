@@ -1,0 +1,71 @@
+---
+import { commentConfig } from "@/config/commentConfig";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	path: string;
+}
+
+const config = {
+	...commentConfig.twikoo,
+	el: "#tcomment",
+	path: Astro.props.path,
+};
+---
+
+<div id="tcomment"></div>
+<!-- 使用自编译的 Twikoo 文件，避免点赞等按钮导致页面触发滚动回顶部 https://github.com/twikoojs/twikoo/issues/721 -->
+<script is:inline src={url("/assets/js/twikoo.nocss.js")}></script>
+<link rel="stylesheet" href={url("/assets/css/twikoo.css")} />
+<link rel="stylesheet" href={url("/assets/css/twikoo-custom.css")} />
+<script is:inline define:vars={{ config }}>
+  // 获取当前页面路径
+  function getCurrentPath() {
+    const pathname = window.location.pathname;
+    return pathname.endsWith("/") && pathname.length > 1
+      ? pathname.slice(0, -1)
+      : pathname;
+  }
+
+  // 动态创建配置对象
+  function createTwikooConfig() {
+    return {
+      ...config,
+      path: getCurrentPath(),
+      el: "#tcomment",
+    };
+  }
+
+  // 初始化 Twikoo
+  function initTwikoo() {
+    if (typeof twikoo !== "undefined") {
+      const commentEl = document.getElementById("tcomment");
+      if (commentEl) {
+        commentEl.innerHTML = "";
+
+        const dynamicConfig = createTwikooConfig();
+
+        twikoo
+          .init(dynamicConfig)
+          .then(() => {
+            // Twikoo initialized
+          })
+          .catch((_error) => {
+            // Twikoo initialization failed
+          });
+      }
+    } else {
+      // 如果 Twikoo 未加载，稍后重试
+      setTimeout(initTwikoo, 500);
+    }
+  }
+
+  // 本脚本是 is:inline 且没有 data-swup-ignore-script，SwupScriptsPlugin 会在每次
+  // content:replace 时把它整段重新执行一遍（原来那个 __twikoo_listeners_done 标记
+  // 就是为此存在的）。既然如此，顶层直接调用一次就同时覆盖了首次加载和每次导航：
+  //   - #tcomment 在本脚本之前输出，取得到；
+  //   - initTwikoo 会先清空容器再初始化，且 twikoo 未就绪时自带重试，是幂等的。
+  // 于是原先那套「查 window.swup、查不到再等 swup:enable」的时序判断、
+  // 200ms 延时，以及 firefly:page:loaded 二次初始化都不再需要 —— 少一条路径，少一次重复渲染
+  initTwikoo();
+</script>

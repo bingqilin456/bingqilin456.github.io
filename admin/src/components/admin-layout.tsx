@@ -1,0 +1,21 @@
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, Link } from "react-router-dom";
+import { LayoutDashboard, FileText, Tags, Image, Rocket, Settings, PanelLeft, Moon, Sun, ArrowUpRight, Feather, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { useSession } from "@/features/auth/session";
+import { apiRequest, safeLink } from "@/lib/api";
+import { okSchema } from "@shared/api-schema";
+import { ErrorNotice } from "@/components/page";
+import { cn } from "@/lib/utils";
+const navigation=[{path:"/",label:"工作台",icon:LayoutDashboard},{path:"/posts",label:"文章管理",icon:FileText},{path:"/taxonomy",label:"标签与分类",icon:Tags},{path:"/media",label:"图片管理",icon:Image},{path:"/publishing",label:"发布记录",icon:Rocket},{path:"/settings",label:"连接设置",icon:Settings}];
+function Navigation({close}:{close?:()=>void}):React.JSX.Element {
+ return <><Link to="/" className="brand" onClick={close}><span className="brand-mark"><Feather size={23}/></span><span><strong>BQL · 博客管理</strong><small>WRITE YOUR OWN STORY</small></span></Link><div className="workspace-chip"><span className="status-dot"/>个人工作空间<span className="workspace-badge">ADMIN</span></div><p className="nav-caption">内容管理</p><nav aria-label="后台导航">{navigation.map(({path,label,icon:Icon})=><NavLink key={path} to={path} end={path==="/"} className={({isActive})=>cn("nav-item",isActive && "active")} onClick={close}><Icon size={18}/><span>{label}</span></NavLink>)}</nav></>;
+}
+export function AdminLayout():React.JSX.Element {
+ const [open,setOpen]=useState(false),[dark,setDark]=useState(()=>localStorage.getItem("bql-admin-theme")!=="light"),[error,setError]=useState<Error|null>(null),[busy,setBusy]=useState(false);
+ const {setup,session,loading,refresh}=useSession();
+ useEffect(()=>{document.documentElement.classList.toggle("dark",dark);localStorage.setItem("bql-admin-theme",dark?"dark":"light");},[dark]);
+ async function signOut():Promise<void>{setBusy(true);setError(null);try{await apiRequest("/api/auth/logout",okSchema,{method:"POST"});await refresh();}catch(reason){setError(reason instanceof Error?reason:new Error("退出失败"));}finally{setBusy(false);}}
+ return <div className="admin-shell"><a className="skip-link" href="#main-content">跳到主要内容</a><aside className="sidebar"><Navigation/><div className="sidebar-bottom"><div className="sidebar-note"><Feather size={19}/><strong>把想法写成文章</strong><p>记录学习与生活，<br/>让每一份积累都有迹可循。</p></div><div className="profile"><span className="avatar">BQ</span><div><strong>{session?.user.login || "bingqilin456"}</strong><small>{session?"博客管理员":"等待连接"}</small></div>{session && <Button variant="ghost" size="icon" aria-label="退出登录" onClick={()=>void signOut()} disabled={busy}><LogOut size={16}/></Button>}</div></div></aside><div className="main-shell"><header className="topbar"><div className="flex items-center gap-3"><Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button variant="ghost" size="icon" aria-label="展开导航" className="mobile-menu"><PanelLeft/></Button></DialogTrigger><DialogContent className="mobile-nav"><DialogTitle className="sr-only">博客管理导航</DialogTitle><DialogDescription className="sr-only">选择要管理的内容</DialogDescription><Navigation close={()=>setOpen(false)}/>{session && <Button variant="outline" onClick={()=>void signOut()} disabled={busy}><LogOut/>退出登录</Button>}</DialogContent></Dialog><span className="topbar-label">我的博客 <span>/ 管理中心</span></span></div><div className="flex items-center gap-2"><Link to="/settings" className="connection-pill"><span className={cn("status-dot",!session && "warning")}/>{loading?"检查连接":session?"已登录":setup?.configured?"待登录":"待连接仓库"}</Link><Button variant="ghost" size="icon" onClick={()=>setDark(value=>!value)} aria-label={dark?"切换浅色":"切换深色"}>{dark?<Sun/>:<Moon/>}</Button>{safeLink(setup?.blogUrl) && <a className="visit-blog" href={safeLink(setup?.blogUrl)} target="_blank" rel="noopener noreferrer">访问博客<ArrowUpRight size={15}/></a>}</div></header><main id="main-content" className="page-content" tabIndex={-1}><ErrorNotice error={error}/><Outlet/></main><footer className="main-footer">BQL BLOG ADMIN<span>写作，从这里开始。</span></footer></div></div>;
+}

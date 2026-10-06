@@ -1,0 +1,157 @@
+---
+import Icon from "@components/common/Icon.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+/**
+ * 桌面端左下角多态音乐组件（Swup 容器外持久存在）。
+ * 三态：disc 收起唱片 → pill 播放中胶囊（唱片 + 歌词） → bar 展开 dock；
+ * bar 态分层：信息层（曲名 / 艺术家 / 进度）+ 工具栏层两张独立表面，
+ * 歌单按钮再向上展一层歌单面板（信息层保持不关）。
+ * 引擎为 MusicManager 单例，逻辑见 src/utils/music-player-controller.ts，
+ * 样式见 src/styles/components/music-player.css。移动端（≤768px）隐藏，由 MobileDock 承担。
+ */
+---
+
+<div
+	class="music-player music-player-widget"
+	data-state="disc"
+	data-panel="closed"
+	data-playing="false"
+	role="region"
+	aria-label={i18n(I18nKey.music)}
+>
+	<!-- 上展面板：dock 上方独立一层，顶部可切换歌单 / 歌词 -->
+	<div class="music-player__panel">
+		<div class="music-player__panel-clip">
+			<div class="music-player__panel-body">
+				<div class="music-player__panel-tabs">
+					<button class="music-player__tab music-player__tab--playlist is-active" type="button">{i18n(I18nKey.musicPlaylist)}</button>
+					<button class="music-player__tab music-player__tab--lyrics" type="button">{i18n(I18nKey.musicLyrics)}</button>
+				</div>
+				<div class="music-player__panel-views">
+					<div class="music-player__playlist-view is-active">
+						<div class="music-player__playlist-list custom-scrollbar" role="listbox" aria-label={i18n(I18nKey.musicPlaylist)}></div>
+					</div>
+					<div class="music-player__lyrics-view">
+						<div class="music-player__lyrics-list custom-scrollbar" role="listbox" aria-label={i18n(I18nKey.musicLyrics)}>
+							<div class="music-player__lyrics-placeholder">{i18n(I18nKey.musicNoLyrics)}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="music-player__stage">
+		<!-- 信息层：bar 态默认展开的独立表面 -->
+		<div class="music-player__info">
+			<div class="music-player__info-clip">
+				<div class="music-player__info-surface">
+					<p class="music-player__title">{i18n(I18nKey.musicNoPlaying)}</p>
+					<p class="music-player__artist"></p>
+					<div class="music-player__progress-row">
+						<span class="music-player__time-current">0:00</span>
+						<div
+							class="music-player__progress"
+							role="slider"
+							aria-label={i18n(I18nKey.musicProgress)}
+							aria-valuemin="0"
+							aria-valuemax="100"
+							aria-valuenow="0"
+						>
+							<div class="music-player__progress-bar"></div>
+							<div class="music-player__progress-thumb"></div>
+						</div>
+						<span class="music-player__time-total">0:00</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 工具栏层：胶囊歌词槽与工具栏共用同一槽位交叉淡入 -->
+		<div class="music-player__bar">
+			<div class="music-player__slot">
+				<span class="music-player__pill-text"><span class="music-player__pill-label"></span></span>
+				<div class="music-player__toolbar">
+					<button class="music-player__btn music-player__btn--mode" data-tooltip={i18n(I18nKey.playModeList)} aria-label={i18n(I18nKey.playModeList)} type="button">
+						<Icon name="material-symbols:repeat-rounded" class="music-player__icon-mode-list text-xl" aria-hidden="true" />
+						<Icon name="material-symbols:repeat-one-rounded" class="music-player__icon-mode-one text-xl hidden" aria-hidden="true" />
+						<Icon name="material-symbols:shuffle-rounded" class="music-player__icon-mode-shuffle text-xl hidden" aria-hidden="true" />
+					</button>
+					<button class="music-player__btn music-player__btn--lyrics" data-tooltip={i18n(I18nKey.musicLyrics)} aria-label={i18n(I18nKey.musicLyrics)} aria-pressed="true" type="button">
+						<Icon name="material-symbols:subtitles-outline-rounded" class="music-player__icon-lrc-on text-xl" aria-hidden="true" />
+						<Icon name="material-symbols:subtitles-off-outline-rounded" class="music-player__icon-lrc-off text-xl hidden" aria-hidden="true" />
+					</button>
+					<button class="music-player__btn music-player__btn--prev" data-tooltip={i18n(I18nKey.musicPrev)} aria-label={i18n(I18nKey.musicPrev)} type="button">
+						<Icon name="material-symbols:skip-previous-rounded" class="text-2xl" aria-hidden="true" />
+					</button>
+					<button class="music-player__btn music-player__btn--play" data-tooltip={i18n(I18nKey.musicPlay)} aria-label={i18n(I18nKey.musicPlay)} type="button">
+						<Icon name="material-symbols:play-arrow-rounded" class="music-player__icon-play text-3xl" aria-hidden="true" />
+						<Icon name="material-symbols:pause-rounded" class="music-player__icon-pause text-3xl hidden" aria-hidden="true" />
+					</button>
+					<button class="music-player__btn music-player__btn--next" data-tooltip={i18n(I18nKey.musicNext)} aria-label={i18n(I18nKey.musicNext)} type="button">
+						<Icon name="material-symbols:skip-next-rounded" class="text-2xl" aria-hidden="true" />
+					</button>
+					<button class="music-player__btn music-player__btn--playlist" data-tooltip={i18n(I18nKey.musicPlaylist)} aria-label={i18n(I18nKey.musicPlaylist)} type="button">
+						<Icon name="mdi:playlist-music" class="text-xl" aria-hidden="true" />
+					</button>
+					<div class="music-player__volume">
+						<button class="music-player__btn music-player__btn--volume" data-tooltip={i18n(I18nKey.musicVolume)} aria-label={i18n(I18nKey.musicVolume)} type="button">
+							<Icon name="material-symbols:volume-up-rounded" class="music-player__icon-vol-on text-xl" aria-hidden="true" />
+							<Icon name="material-symbols:volume-off-rounded" class="music-player__icon-vol-off text-xl hidden" aria-hidden="true" />
+						</button>
+						<div class="music-player__volume-pop">
+							<span class="music-player__volume-value">70</span>
+							<div
+								class="music-player__volume-track"
+								role="slider"
+								aria-label={i18n(I18nKey.musicVolume)}
+								aria-orientation="vertical"
+								aria-valuemin="0"
+								aria-valuemax="100"
+								aria-valuenow="70"
+							>
+								<div class="music-player__volume-bar"></div>
+								<div class="music-player__volume-thumb"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 唱片：三态复用的圆碟，位置随形态过渡 -->
+		<button class="music-player__disc" type="button" aria-label={i18n(I18nKey.music)}>
+			<Icon name="material-symbols:music-note-rounded" class="music-player__disc-placeholder text-2xl" aria-hidden="true" />
+			<img class="music-player__disc-img is-empty" src="" alt="" />
+		</button>
+
+		<div class="music-player__loading" aria-hidden="true">
+			<Icon name="material-symbols:sync-rounded" class="text-2xl" aria-hidden="true" />
+		</div>
+	</div>
+</div>
+
+<template id="music-player-item-template">
+	<div class="music-player__track" role="option">
+		<div class="music-player__track-cover-wrap">
+			<img src="" class="music-player__track-cover" loading="lazy" alt="" />
+			<div class="music-player__track-active hidden">
+				<Icon name="material-symbols:graphic-eq-rounded" class="text-sm" aria-hidden="true" />
+			</div>
+		</div>
+		<div class="music-player__track-meta">
+			<div class="music-player__track-title"></div>
+			<div class="music-player__track-artist"></div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { setupMusicPlayerWidget } from "@/utils/music-player-controller";
+	import { definePersistentIsland } from "@/utils/swup-lifecycle";
+
+	// 组件挂在 Swup 容器外，DOM 跨导航持久存在，整个文档生命周期只初始化一次
+	definePersistentIsland("music-player-widget", setupMusicPlayerWidget);
+</script>

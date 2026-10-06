@@ -1,0 +1,71 @@
+/* ============================================
+   侧边栏公告组件 — 来自 Announcement.astro
+   多公告卡片垂直列表
+   ============================================ */
+
+.announcement-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.announcement-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	padding: 0.75rem 0;
+	border-bottom: 1px solid var(--line-divider);
+}
+
+.announcement-item:last-child {
+	border-bottom: none;
+}
+
+.announcement-item__header {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.announcement-item__tag {
+	font-size: 0.6875rem;
+	font-weight: 700;
+	padding: 0.125rem 0.375rem;
+	border: 1px solid #000;
+	color: #000;
+	background: #fff;
+	line-height: 1;
+	flex-shrink: 0;
+}
+
+:root.dark .announcement-item__tag {
+	border-color: #fff;
+	color: #fff;
+	background: #000;
+}
+
+.announcement-item__title {
+	font-size: 0.9375rem;
+	font-weight: 700;
+	color: var(--deep-text);
+	line-height: 1.2;
+}
+
+.announcement-item__time {
+	font-size: 0.75rem;
+	color: var(--content-meta);
+	font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.announcement-item__content {
+	font-size: 0.8125rem;
+	line-height: 1.5;
+	color: var(--text-normal);
+	margin: 0;
+}
+
+.announcement-item__link {
+	margin-top: 0.25rem;
+	align-self: flex-start;
+}

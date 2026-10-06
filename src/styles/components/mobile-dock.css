@@ -1,0 +1,1056 @@
+/* ============================================
+   移动端统一变形 Dock — 来自 MobileDock.astro
+   胶囊 / 滚动气泡 / 菜单与工具内容卡片
+   ============================================ */
+
+.mobile-dock,
+.mobile-dock__overlay {
+	display: none;
+}
+
+@media (max-width: 768px) {
+	.mobile-dock {
+		--mobile-dock-edge: max(0.75rem, env(safe-area-inset-right, 0px));
+		--mobile-dock-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+		--mobile-dock-motion: cubic-bezier(0.22, 1, 0.36, 1);
+		--mobile-dock-content-top-padding: 0.75rem;
+		--mobile-dock-surface: #e7e7e7;
+		/* 左侧留白与右侧 edge 同值，保证 dock 左右对称 —— 胶囊态和展开卡片共用，
+		   想让 dock 更长/更短就同时调这一个值和 --mobile-dock-edge */
+		--mobile-dock-inset-left: 0.75rem;
+		position: fixed;
+		right: var(--mobile-dock-edge);
+		bottom: var(--mobile-dock-bottom);
+		z-index: 74;
+		display: flex;
+		flex-direction: column-reverse;
+		align-items: stretch;
+		/* 铺满可用宽度。原来的 28rem 上限会让 dock 在 472px 以上的视窗里右贴边、
+		   左边空出一大段。左侧取留白与安全区的较大值，横屏有刘海也不会被挤偏 */
+		width: calc(
+			100vw - var(--mobile-dock-edge) -
+				max(var(--mobile-dock-inset-left), env(safe-area-inset-left, 0px))
+		);
+		max-width: calc(100vw - 1.5rem);
+		max-height: 70dvh;
+		color: var(--deep-text);
+		background: var(--mobile-dock-surface);
+		border: 0;
+		border-radius: 1.825rem;
+		box-shadow: 0 0.65rem 1.8rem rgb(0 0 0 / 14%);
+		overflow: hidden;
+		transform-origin: bottom right;
+		transition:
+			width 500ms var(--mobile-dock-motion),
+			border-radius 500ms var(--mobile-dock-motion),
+			transform 500ms var(--mobile-dock-motion),
+			opacity 180ms ease,
+			box-shadow 240ms ease;
+	}
+
+	:root.dark .mobile-dock {
+		--mobile-dock-surface: #181818;
+		box-shadow: 0 0.65rem 1.8rem rgb(0 0 0 / 34%);
+	}
+
+	.mobile-dock[data-shape="bubble"] {
+		width: 3.65rem;
+		height: 3.65rem;
+		min-height: 3.65rem;
+		max-height: 3.65rem;
+		aspect-ratio: 1;
+		border-radius: 50%;
+	}
+
+	/* 宽度沿用基础规则（铺满 - 左右留白），这里只定形状 */
+	.mobile-dock[data-shape="pill"] {
+		border-radius: 1.825rem;
+	}
+
+	.mobile-dock[data-shape="card"] {
+		border-radius: 1.25rem;
+	}
+
+	.mobile-dock.is-keyboard-open {
+		transform: translateY(calc(100% + var(--mobile-dock-bottom) + 1rem));
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.mobile-dock__bar {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		min-height: 3.25rem;
+		padding: 0.2rem 0.35rem 0.2rem 0.65rem;
+		transition: border-color 200ms ease, padding 260ms ease;
+	}
+
+	.mobile-dock__context-action,
+	.mobile-dock__menu-toggle,
+	.mobile-dock__toolbar button,
+	.mobile-dock__transport button,
+	.mobile-dock__playlist-item,
+	.mobile-dock__menu-row,
+	.mobile-dock__submenu-row {
+		border: 0;
+		color: inherit;
+		background: transparent;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.mobile-dock__context {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		min-width: 0;
+		min-height: 2.75rem;
+		flex: 1;
+		padding: 0 0.25rem;
+		border-radius: var(--radius-full);
+		overflow: hidden;
+		transition:
+			flex-basis 320ms var(--mobile-dock-motion),
+			opacity 160ms ease,
+			padding 260ms ease,
+			background-color 180ms ease;
+	}
+
+	.mobile-dock__context-action {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		min-width: 0;
+		min-height: 2.75rem;
+		flex: 1;
+		padding: 0 0.25rem;
+		text-align: left;
+		border-radius: var(--radius-full);
+		overflow: hidden;
+	}
+
+	.mobile-dock__context-action:active,
+	.mobile-dock__menu-toggle:active,
+	.mobile-dock__toolbar button:active,
+	.mobile-dock__transport button:active {
+		background: var(--btn-plain-bg-active);
+	}
+
+	.mobile-dock__site-mark {
+		display: none;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		flex: 0 0 2.75rem;
+		border-radius: 50%;
+		color: inherit;
+		overflow: hidden;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.mobile-dock__site-mark img,
+	.mobile-dock__site-mark picture,
+	.mobile-dock__site-mark svg {
+		display: block;
+		width: 1.75rem;
+		height: 1.75rem;
+		object-fit: contain;
+	}
+
+	.mobile-dock__back-mark {
+		display: none;
+		place-items: center;
+		width: 1.65rem;
+		height: 1.65rem;
+		flex: 0 0 auto;
+		font-size: 1.2rem;
+		color: var(--primary);
+	}
+
+	.mobile-dock__context-viewport {
+		display: block;
+		min-width: 0;
+		flex: 1;
+		overflow: hidden;
+	}
+
+	.mobile-dock__site-title,
+	.mobile-dock__view-title {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 1rem;
+		font-weight: 650;
+		letter-spacing: 0.01em;
+	}
+
+	.mobile-dock__view-title,
+	.mobile-dock__lyric-viewport {
+		display: none;
+	}
+
+	.mobile-dock__lyric-viewport {
+		min-width: 0;
+		width: 100%;
+		/* 左内边距与遮罩左渐变同宽：文字起始点落在渐变达到不透明的位置，
+		   静止歌词的首字不会被渐变吃掉半边；跑马灯滚出时仍在渐变带内淡出 */
+		padding-left: 0.5rem;
+		overflow: hidden;
+		white-space: nowrap;
+		mask-image: linear-gradient(90deg, transparent 0, #000 0.5rem, #000 calc(100% - 0.5rem), transparent 100%);
+		-webkit-mask-image: linear-gradient(90deg, transparent 0, #000 0.5rem, #000 calc(100% - 0.5rem), transparent 100%);
+	}
+
+	.mobile-dock__lyric-text {
+		display: inline-block;
+		min-width: max-content;
+		font-size: 0.95rem;
+		font-weight: 600;
+		line-height: 1.4;
+		will-change: transform;
+	}
+
+	.mobile-dock__lyric-text.is-marquee {
+		animation: mobile-dock-lyric-marquee var(--mobile-dock-lyric-duration, 7s) ease-in-out infinite alternate;
+	}
+
+	.mobile-dock__lyric-text.is-paused {
+		animation-play-state: paused;
+	}
+
+	.mobile-dock.has-playing-context[data-shape="pill"] .mobile-dock__site-title {
+		display: none;
+	}
+
+	.mobile-dock[data-shape="pill"] .mobile-dock__site-mark {
+		display: grid;
+	}
+
+	.mobile-dock.has-playing-context[data-shape="pill"] .mobile-dock__context {
+		gap: 0.25rem;
+	}
+
+	.mobile-dock.has-playing-context[data-shape="pill"] .mobile-dock__lyric-viewport {
+		display: block;
+	}
+
+	.mobile-dock[data-shape="card"]:not(.is-child-view) .mobile-dock__site-mark {
+		display: grid;
+	}
+
+	.mobile-dock.has-playing-context[data-shape="card"]:not(.is-child-view) .mobile-dock__site-title {
+		display: none;
+	}
+
+	.mobile-dock.has-playing-context[data-shape="card"]:not(.is-child-view) .mobile-dock__lyric-viewport {
+		display: block;
+	}
+
+	.mobile-dock[data-shape="card"].is-child-view .mobile-dock__site-title,
+	.mobile-dock[data-shape="card"].is-child-view .mobile-dock__lyric-viewport,
+	.mobile-dock[data-shape="card"].is-child-view .mobile-dock__site-mark {
+		display: none;
+	}
+
+	.mobile-dock[data-shape="card"].is-child-view .mobile-dock__view-title {
+		display: block;
+	}
+
+	.mobile-dock[data-shape="card"].is-child-view .mobile-dock__back-mark {
+		display: grid;
+	}
+
+	.mobile-dock[data-shape="bubble"] .mobile-dock__context {
+		flex: 0 0 0;
+		width: 0;
+		min-height: 0;
+		padding: 0;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.mobile-dock__menu-toggle {
+		display: grid;
+		place-items: center;
+		position: relative;
+		width: 2.85rem;
+		height: 2.85rem;
+		flex: 0 0 2.85rem;
+		border-radius: var(--radius-full);
+		font-size: 1.5rem;
+		transition:
+			background-color 180ms ease,
+			transform 260ms var(--mobile-dock-motion);
+	}
+
+	.mobile-dock[data-shape="bubble"] .mobile-dock__bar {
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		justify-content: center;
+		padding: 0.4rem;
+		box-sizing: border-box;
+	}
+
+	.mobile-dock[data-shape="bubble"] .mobile-dock__menu-toggle {
+		width: 2.8rem;
+		flex-basis: 2.8rem;
+		transform: none;
+	}
+
+	.mobile-dock__menu-icon,
+	.mobile-dock__close-icon {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		transition:
+			opacity 180ms ease,
+			transform 260ms var(--mobile-dock-motion);
+	}
+
+	.mobile-dock__close-icon {
+		opacity: 0;
+		transform: rotate(-90deg) scale(0.72);
+	}
+
+	.mobile-dock[data-shape="card"] .mobile-dock__menu-icon {
+		opacity: 0;
+		transform: rotate(90deg) scale(0.72);
+	}
+
+	.mobile-dock[data-shape="card"] .mobile-dock__close-icon {
+		opacity: 1;
+		transform: rotate(0) scale(1);
+	}
+
+	.mobile-dock.is-closing .mobile-dock__menu-icon {
+		opacity: 1;
+		transform: rotate(0) scale(1);
+	}
+
+	.mobile-dock.is-closing .mobile-dock__close-icon {
+		opacity: 0;
+		transform: rotate(-90deg) scale(0.72);
+	}
+
+	.mobile-dock__card {
+		display: grid;
+		grid-template-rows: 0fr;
+		min-width: 0;
+		min-height: 0;
+		overflow: hidden;
+		pointer-events: none;
+		transition: grid-template-rows 500ms var(--mobile-dock-motion);
+	}
+
+	.mobile-dock[data-shape="card"] .mobile-dock__card {
+		grid-template-rows: 1fr;
+		pointer-events: auto;
+	}
+
+	.mobile-dock.is-closing .mobile-dock__card {
+		grid-template-rows: 0fr;
+		pointer-events: none;
+		transition: grid-template-rows 500ms var(--mobile-dock-motion);
+	}
+
+	.mobile-dock__card-inner {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		max-height: calc(70dvh - 3.25rem);
+		overflow: hidden;
+		outline: none;
+	}
+
+	.mobile-dock__views,
+	.mobile-dock__toolbar {
+		opacity: 0;
+		transform: translate3d(0, 0.65rem, 0);
+		transition:
+			opacity 200ms ease,
+			transform 280ms var(--mobile-dock-motion);
+	}
+
+	.mobile-dock[data-shape="card"] .mobile-dock__views,
+	.mobile-dock[data-shape="card"] .mobile-dock__toolbar {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+
+	.mobile-dock[data-shape="card"] .mobile-dock__views {
+		transition-delay: 150ms;
+	}
+
+	.mobile-dock[data-shape="card"] .mobile-dock__toolbar {
+		transition-delay: 220ms;
+	}
+
+	.mobile-dock.is-closing .mobile-dock__views {
+		opacity: 0;
+		transform: translate3d(0, 0.65rem, 0);
+		transition-delay: 0ms;
+	}
+
+	.mobile-dock.is-closing .mobile-dock__toolbar {
+		opacity: 0;
+		transform: none;
+		transition: none;
+	}
+
+	.mobile-dock__views {
+		min-height: 0;
+		max-height: calc(70dvh - 7.3rem - var(--mobile-dock-content-top-padding));
+		padding-top: var(--mobile-dock-content-top-padding);
+		box-sizing: border-box;
+		overflow: hidden;
+	}
+
+	.mobile-dock__view {
+		display: none;
+		flex-direction: column;
+		min-height: 0;
+		/* 比外层再多减一份 content-top-padding：外层容器的 padding-top 占的
+		   正是这份高度，不扣掉的话视图顶满时底边越过容器的裁切线，音乐控制
+		   区的下内边距被整段裁掉，播放按钮会贴死工具栏分隔线 */
+		max-height: calc(
+			70dvh - 7.3rem - var(--mobile-dock-content-top-padding) * 2
+		);
+		overflow-y: auto;
+		overflow-x: hidden;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.mobile-dock__view.is-active {
+		display: flex;
+		animation: mobile-dock-view-in 220ms ease-out;
+	}
+
+	.mobile-dock__view[hidden],
+	.mobile-dock .is-hidden {
+		display: none !important;
+	}
+
+	.mobile-dock__menu,
+	.mobile-dock__announcement-list,
+	.mobile-dock__tag-list {
+		padding: 0.35rem 0.85rem 0.75rem;
+	}
+
+	.mobile-dock__menu-row,
+	.mobile-dock__submenu-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		width: 100%;
+		min-height: 3.25rem;
+		padding: 0.65rem 0.4rem;
+		text-decoration: none;
+		color: inherit;
+		font-size: 1rem;
+		font-weight: 560;
+		transition: color 160ms ease, background-color 160ms ease, padding 180ms ease;
+	}
+
+	.mobile-dock__menu-row {
+		border-bottom: 1px solid var(--line-divider);
+	}
+
+	.mobile-dock__menu > .mobile-dock__menu-row:last-child,
+	.mobile-dock__menu > .mobile-dock__accordion:last-child .mobile-dock__accordion-trigger {
+		border-bottom: none;
+	}
+
+	.mobile-dock__menu-row:hover,
+	.mobile-dock__submenu-row:hover {
+		color: var(--primary);
+		padding-left: 0.65rem;
+	}
+
+	.mobile-dock__menu-row-main,
+	.mobile-dock__submenu-row {
+		min-width: 0;
+	}
+
+	.mobile-dock__menu-row-main {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+	}
+
+	.mobile-dock__menu-row-main > svg,
+	.mobile-dock__submenu-row > svg:first-child {
+		width: 1.15rem;
+		height: 1.15rem;
+		opacity: 0.72;
+		flex: 0 0 auto;
+	}
+
+	.mobile-dock__external-icon {
+		width: 0.72rem;
+		height: 0.72rem;
+		opacity: 0.35;
+	}
+
+	.mobile-dock__accordion-arrow {
+		font-size: 1.15rem;
+		opacity: 0.55;
+		transition: transform 260ms var(--mobile-dock-motion);
+	}
+
+	.mobile-dock__accordion.is-open .mobile-dock__accordion-arrow {
+		transform: rotate(180deg);
+	}
+
+	.mobile-dock__submenu {
+		display: grid;
+		grid-template-rows: 0fr;
+		opacity: 0;
+		transition: grid-template-rows 300ms var(--mobile-dock-motion), opacity 180ms ease;
+	}
+
+	.mobile-dock__accordion.is-open .mobile-dock__submenu {
+		grid-template-rows: 1fr;
+		opacity: 1;
+	}
+
+	.mobile-dock__submenu-inner {
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.mobile-dock__submenu-row {
+		justify-content: flex-start;
+		min-height: 2.85rem;
+		padding-left: 1.55rem;
+		font-size: 0.9rem;
+		font-weight: 500;
+		opacity: 0.78;
+	}
+
+	.mobile-dock__submenu-row:hover {
+		padding-left: 1.8rem;
+		opacity: 1;
+	}
+
+	.mobile-dock__announcement {
+		border-bottom: 1px solid var(--line-divider);
+	}
+
+	.mobile-dock__announcement:last-child {
+		border-bottom: none;
+	}
+
+	.mobile-dock__announcement summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		min-height: 3.6rem;
+		padding: 0.7rem 0.4rem;
+		cursor: pointer;
+		list-style: none;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.mobile-dock__announcement summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.mobile-dock__announcement-main {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		min-width: 0;
+	}
+
+	.mobile-dock__announcement-main strong {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 0.95rem;
+		font-weight: 700;
+	}
+
+	.mobile-dock__announcement-tag {
+		padding: 0.15rem 0.42rem;
+		border-radius: var(--radius-full);
+		background: var(--btn-plain-bg-hover);
+		font-size: 0.68rem;
+		font-weight: 650;
+		color: var(--primary);
+		flex: 0 0 auto;
+	}
+
+	.mobile-dock__announcement-side {
+		display: flex;
+		align-items: center;
+		gap: 0.15rem;
+		flex: 0 0 auto;
+	}
+
+	.mobile-dock__announcement time {
+		font-size: 0.7rem;
+		opacity: 0.52;
+		flex: 0 0 auto;
+	}
+
+	.mobile-dock__announcement-arrow {
+		width: 1.15rem;
+		height: 1.15rem;
+		opacity: 0.55;
+		flex: 0 0 auto;
+		transition: transform 260ms var(--mobile-dock-motion);
+	}
+
+	.mobile-dock__announcement[open] .mobile-dock__announcement-arrow {
+		transform: rotate(180deg);
+	}
+
+	.mobile-dock__announcement-content {
+		padding: 0 0.4rem 0.85rem;
+		animation: mobile-dock-view-in 220ms ease-out;
+	}
+
+	.mobile-dock__announcement-content p {
+		margin: 0;
+		font-size: 0.86rem;
+		line-height: 1.7;
+		opacity: 0.72;
+	}
+
+	.mobile-dock__announcement-content a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		margin-top: 0.55rem;
+		font-size: 0.78rem;
+		font-weight: 650;
+		color: var(--primary);
+		text-decoration: none;
+	}
+
+	.mobile-dock__tag-list {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.55rem;
+	}
+
+	.mobile-dock__tag-row {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.3rem;
+		min-height: 3.6rem;
+		padding: 0.55rem 0.45rem;
+		border: 0;
+		border-radius: 0.9rem;
+		background: var(--btn-plain-bg-hover);
+		text-decoration: none;
+		color: inherit;
+		font-size: 0.8rem;
+		font-weight: 560;
+		transition: color 160ms ease, background-color 160ms ease;
+	}
+
+	.mobile-dock__tag-row span {
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.mobile-dock__tag-row:hover {
+		color: var(--primary);
+		background: var(--btn-plain-bg-active);
+	}
+
+	.mobile-dock__tag-row strong {
+		display: grid;
+		place-items: center;
+		min-width: 1.85rem;
+		height: 1.5rem;
+		padding: 0 0.38rem;
+		border-radius: var(--radius-full);
+		background: var(--btn-plain-bg-active);
+		font-size: 0.72rem;
+	}
+
+	.mobile-dock__toc {
+		max-height: calc(70dvh - 7.3rem);
+		padding: 0.65rem 0.8rem 0.9rem;
+	}
+
+	.mobile-dock__playlist-cover {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 2.65rem;
+		height: 2.65rem;
+		border-radius: 0.8rem;
+		background: var(--btn-plain-bg-hover);
+		overflow: hidden;
+		flex: 0 0 auto;
+	}
+
+	.mobile-dock__playlist-cover img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.mobile-dock__playlist-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	.mobile-dock__playlist-meta strong,
+	.mobile-dock__playlist-meta span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.mobile-dock__playlist-meta span {
+		font-size: 0.72rem;
+		opacity: 0.58;
+	}
+
+	.mobile-dock__playlist {
+		display: flex;
+		flex-direction: column;
+		min-height: 4rem;
+		padding: 0.35rem 0.85rem 0.5rem;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.mobile-dock__playlist-item {
+		display: grid;
+		grid-template-columns: 2.25rem minmax(0, 1fr) 1.2rem;
+		align-items: center;
+		gap: 0.65rem;
+		width: 100%;
+		min-height: 3.3rem;
+		padding: 0.45rem 0.3rem;
+		text-align: left;
+		transition: color 160ms ease, padding 180ms ease;
+	}
+
+	.mobile-dock__playlist-item:hover,
+	.mobile-dock__playlist-item.is-active {
+		color: var(--primary);
+		padding-left: 0.55rem;
+	}
+
+	.mobile-dock__playlist-cover {
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 0.65rem;
+	}
+
+	.mobile-dock__playlist-meta strong {
+		font-size: 0.82rem;
+	}
+
+	.mobile-dock__playlist-eq {
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		gap: 0.12rem;
+		height: 1rem;
+		opacity: 0;
+	}
+
+	.mobile-dock__playlist-eq i {
+		display: block;
+		width: 0.13rem;
+		height: 35%;
+		border-radius: var(--radius-full);
+		background: var(--primary);
+	}
+
+	.mobile-dock__playlist-item.is-active .mobile-dock__playlist-eq {
+		opacity: 1;
+	}
+
+	.mobile-dock__playlist-item.is-playing .mobile-dock__playlist-eq i {
+		animation: mobile-dock-eq 720ms ease-in-out infinite alternate;
+	}
+
+	.mobile-dock__playlist-item.is-playing .mobile-dock__playlist-eq i:nth-child(2) {
+		animation-delay: -240ms;
+	}
+
+	.mobile-dock__playlist-item.is-playing .mobile-dock__playlist-eq i:nth-child(3) {
+		animation-delay: -480ms;
+	}
+
+	.mobile-dock__empty {
+		margin: 0;
+		padding: 1.4rem 0.5rem;
+		text-align: center;
+		font-size: 0.82rem;
+		opacity: 0.55;
+	}
+
+	.mobile-dock__transport {
+		padding: 0.5rem 0.9rem 0.65rem;
+		border-top: 1px solid var(--line-divider);
+		flex: 0 0 auto;
+	}
+
+	.mobile-dock__progress-row {
+		display: grid;
+		grid-template-columns: 2.4rem minmax(0, 1fr) 2.4rem;
+		align-items: center;
+		gap: 0.45rem;
+		font-size: 0.65rem;
+		opacity: 0.72;
+	}
+
+	.mobile-dock__progress-row span:last-child {
+		text-align: right;
+	}
+
+	.mobile-dock__progress {
+		--mobile-dock-progress: 0%;
+		width: 100%;
+		height: 1rem;
+		margin: 0;
+		appearance: none;
+		-webkit-appearance: none;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.mobile-dock__progress::-webkit-slider-runnable-track {
+		height: 0.2rem;
+		border-radius: var(--radius-full);
+		background: linear-gradient(90deg, var(--primary) var(--mobile-dock-progress), var(--line-divider) var(--mobile-dock-progress));
+	}
+
+	.mobile-dock__progress::-webkit-slider-thumb {
+		width: 0.72rem;
+		height: 0.72rem;
+		margin-top: -0.26rem;
+		appearance: none;
+		-webkit-appearance: none;
+		border: 0;
+		border-radius: var(--radius-full);
+		background: var(--primary);
+	}
+
+	.mobile-dock__progress::-moz-range-track {
+		height: 0.2rem;
+		border-radius: var(--radius-full);
+		background: var(--line-divider);
+	}
+
+	.mobile-dock__progress::-moz-range-progress {
+		height: 0.2rem;
+		border-radius: var(--radius-full);
+		background: var(--primary);
+	}
+
+	.mobile-dock__progress::-moz-range-thumb {
+		width: 0.72rem;
+		height: 0.72rem;
+		border: 0;
+		border-radius: var(--radius-full);
+		background: var(--primary);
+	}
+
+	.mobile-dock__transport-buttons {
+		display: grid;
+		grid-template-columns: repeat(2, 2.4rem) 3.25rem repeat(2, 2.4rem);
+		align-items: center;
+		justify-content: center;
+		justify-items: center;
+		gap: 0.3rem;
+		margin-top: 0.15rem;
+	}
+
+	.mobile-dock__transport-buttons button {
+		display: grid;
+		place-items: center;
+		width: 2.4rem;
+		height: 2.4rem;
+		border-radius: var(--radius-full);
+		font-size: 1.25rem;
+		transition: color 160ms ease, background-color 160ms ease;
+	}
+
+	.mobile-dock__transport-buttons button.is-active {
+		color: var(--primary);
+		background: color-mix(in oklch, var(--deep-text) 7%, transparent);
+	}
+
+	.mobile-dock__transport-buttons .mobile-dock__play-button {
+		width: 3.25rem;
+		height: 3.25rem;
+		background: var(--deep-text);
+		color: var(--float-panel-bg);
+		font-size: 1.45rem;
+	}
+
+	.mobile-dock__toolbar {
+		display: flex;
+		align-items: stretch;
+		gap: 0.35rem;
+		min-height: 4.05rem;
+		padding: 0.3rem 0.55rem;
+		border-top: 1px solid var(--line-divider);
+		overflow-x: auto;
+		overflow-y: hidden;
+		overscroll-behavior-x: contain;
+		scrollbar-width: none;
+		flex: 0 0 auto;
+	}
+
+	.mobile-dock__toolbar::-webkit-scrollbar {
+		display: none;
+	}
+
+	.mobile-dock__toolbar button {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.2rem;
+		min-width: 3.45rem;
+		min-height: 3.25rem;
+		padding: 0.3rem 0.45rem;
+		border-radius: 1rem;
+		font-size: 1.2rem;
+		transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+	}
+
+	.mobile-dock__toolbar button span {
+		max-width: 3.2rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 0.62rem;
+		font-weight: 600;
+	}
+
+	.mobile-dock__toolbar button.is-active {
+		color: var(--primary);
+		background: var(--btn-plain-bg-active);
+	}
+
+	.mobile-dock__context:focus-visible,
+	.mobile-dock__menu-toggle:focus-visible,
+	.mobile-dock__toolbar button:focus-visible,
+	.mobile-dock__transport button:focus-visible,
+	.mobile-dock__menu-row:focus-visible,
+	.mobile-dock__submenu-row:focus-visible,
+	.mobile-dock__tag-row:focus-visible,
+	.mobile-dock__announcement summary:focus-visible,
+	.mobile-dock__playlist-item:focus-visible,
+	.mobile-dock__progress:focus-visible {
+		outline: 2px solid var(--primary);
+		outline-offset: -2px;
+	}
+
+	.mobile-dock__overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 73;
+		display: block;
+		background: color-mix(in oklch, var(--deep-text) 28%, transparent);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 220ms ease;
+	}
+
+	.mobile-dock__overlay.is-open {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.mobile-dock__overlay.is-closing {
+		opacity: 0;
+		pointer-events: auto;
+		transition: opacity 220ms ease-in;
+	}
+
+	#navbar,
+	#top-row,
+	.floating-dock,
+	.nav-drawer,
+	.nav-drawer-overlay,
+	.dock-drawer {
+		display: none !important;
+	}
+
+	/* Dock 的滚动让位由 .site-footer__inner 的底部内边距承担（footer.css）：
+	   页脚背景随之延伸到屏幕底，不再在页脚后面留一段无主的空档 */
+
+	@keyframes mobile-dock-view-in {
+		0% { transform: translateY(0.2rem); opacity: 0; }
+		100% { transform: translateY(0); opacity: 1; }
+	}
+
+	@keyframes mobile-dock-lyric-marquee {
+		0%, 14% { transform: translate3d(0, 0, 0); }
+		72%, 100% { transform: translate3d(var(--mobile-dock-lyric-offset, 0), 0, 0); }
+	}
+
+	@keyframes mobile-dock-eq {
+		0% { height: 28%; }
+		100% { height: 100%; }
+	}
+}
+
+@media (max-width: 360px) {
+	.mobile-dock__bar {
+		min-height: 3.25rem;
+	}
+
+	.mobile-dock__site-title,
+	.mobile-dock__view-title,
+	.mobile-dock__lyric-text {
+		font-size: 0.9rem;
+	}
+
+	.mobile-dock__toolbar button {
+		min-width: 3.2rem;
+	}
+}
+
+@media (min-width: 769px) {
+	.mobile-dock,
+	.mobile-dock__overlay {
+		display: none !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.mobile-dock,
+	.mobile-dock *,
+	.mobile-dock__overlay {
+		scroll-behavior: auto !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+
+	.mobile-dock__lyric-text.is-marquee {
+		animation: none !important;
+		transform: none !important;
+	}
+}

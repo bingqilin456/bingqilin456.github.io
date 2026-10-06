@@ -1,0 +1,64 @@
+---
+import Icon from "@components/common/Icon.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { url } from "@/utils/url-utils";
+import "@/styles/pages/404.css";
+---
+
+<MainGridLayout title={i18n(I18nKey.notFound)} description={i18n(I18nKey.notFoundDescription)} hasOwnH1={true}>
+	<meta slot="head" name="robots" content="noindex, nofollow" />
+
+	<section class="page-404" data-not-found-scene>
+		<div class="page-404__visual" aria-hidden="true" data-pagefind-ignore>
+			<canvas class="page-404__stairs" data-not-found-stairs></canvas>
+
+			<div class="page-404__glyph-layer" data-not-found-glyph-layer></div>
+			<span class="page-404__static-code">404</span>
+		</div>
+
+		<div class="page-404__content">
+			<h1 class="page-404__title">{i18n(I18nKey.notFoundTitle)}</h1>
+			<p class="page-404__desc">{i18n(I18nKey.notFoundDescription)}</p>
+
+			<div class="page-404__actions">
+				<a href={url("/")} class="page-404__btn page-404__btn--primary">
+					<Icon name="material-symbols:home" class="page-404__btn-icon" />
+					{i18n(I18nKey.backToHome)}
+				</a>
+				<a href={url("/archive/")} class="page-404__btn page-404__btn--secondary">
+					<Icon name="material-symbols:history" class="page-404__btn-icon" />
+					{i18n(I18nKey.archive)}
+				</a>
+			</div>
+		</div>
+	</section>
+</MainGridLayout>
+
+<script>
+	import { mountNotFoundScene } from "@/utils/not-found-scene";
+	import { definePageIsland } from "@/utils/swup-lifecycle";
+
+	let cleanupNotFoundScene: (() => void) | null = null;
+
+	function teardownNotFoundScene() {
+		cleanupNotFoundScene?.();
+		cleanupNotFoundScene = null;
+	}
+
+	function bootNotFoundScene() {
+		teardownNotFoundScene();
+
+		const root = document.querySelector<HTMLElement>("[data-not-found-scene]");
+		if (!root) return;
+
+		cleanupNotFoundScene = mountNotFoundScene(root);
+	}
+
+	definePageIsland({
+		name: "not-found-scene",
+		mount: bootNotFoundScene,
+		unmount: teardownNotFoundScene,
+	});
+</script>

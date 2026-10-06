@@ -1,0 +1,14 @@
+/* ============================================
+   主网格布局 — 来自 MainGridLayout.astro
+   ============================================ */
+
+#main-grid {
+	--page-width: 64rem;
+}
+
+/* Swup 容器最小高度保护，防止页面过渡时高度塌陷导致 Footer 跳动 */
+#swup-container {
+	min-height: 60vh;
+}
+
+/* .onload-animation 统一定义在 transition.css 中，避免 CSS 冲突 */

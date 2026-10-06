@@ -1,0 +1,752 @@
+---
+import { render } from "astro:content";
+import Comment from "@components/comment/index.astro";
+import Icon from "@components/common/Icon.astro";
+import Markdown from "@components/common/Markdown.astro";
+import VisitorCount from "@components/common/VisitorCount.astro";
+import EncryptedPost from "@components/features/EncryptedPost.astro";
+import KatexManager from "@components/features/KatexManager.astro";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import QRCode from "qrcode";
+import PostHeaderNav from "@/components/misc/PostHeaderNav.astro";
+import "@/styles/components/post-hero.css";
+import "@/styles/components/post-header-nav.css";
+import { getSortedPosts, getTagList } from "@utils/content-utils";
+import {
+	getCategoryUrl,
+	getFileDirFromPath,
+	getPostUrlBySlug,
+	getTagArchiveUrl,
+	removeFileExtension,
+} from "@utils/url-utils";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import CoverImage from "@/components/common/CoverImage.astro";
+import PostFooterActions from "@/components/misc/PostFooterActions.astro";
+import RelatedPosts from "@/components/misc/RelatedPosts.astro";
+import { coverImageConfig } from "@/config/coverImageConfig";
+import { homeConfig } from "@/config/homeConfig";
+import { siteConfig } from "@/config/siteConfig";
+import { buildCoverImage } from "@/utils/cover-image";
+import { formatDateI18nParts, formatDateToYYYYMMDD } from "@/utils/date-utils";
+import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
+import {
+	buildOrganizationEntity,
+	buildPersonEntity,
+	buildWebSiteEntity,
+	serializeJsonLd,
+} from "@/utils/schema-utils";
+import { url } from "@/utils/url-utils";
+
+export async function getStaticPaths() {
+	const blogEntries = await getSortedPosts();
+	return blogEntries.map((entry) => {
+		// 将 id 转换为 slug（移除扩展名）以匹配路由参数
+		const slug = removeFileExtension(entry.id);
+		return {
+			params: { slug },
+			props: { entry },
+		};
+	});
+}
+
+const { entry } = Astro.props;
+const { Content, remarkPluginFrontmatter } = await render(entry);
+const publishedDateParts = formatDateI18nParts(entry.data.published);
+const postAiSummaryModel = "DeepSeek";
+
+const bannerPostMeta = {
+	title: entry.data.title,
+	published: entry.data.published,
+	updated: entry.data.updated,
+	words: remarkPluginFrontmatter.words,
+	minutes: remarkPluginFrontmatter.minutes,
+};
+
+// 处理随机图：如果image为"api"，则从配置的API获取随机图
+const processedImage = processCoverImageSync(entry.data.image, entry.id);
+const coverApiUrls = getApiUrlList(entry.data.image, entry.id);
+const { randomCoverImage } = coverImageConfig;
+// 兜底图只服务于随机图：随机图关闭时没写 image 的文章直接不渲染封面区域
+const coverFallbackPath = randomCoverImage.enable
+	? randomCoverImage.fallback || ""
+	: "";
+const coverFallbackUrl = coverFallbackPath ? url(coverFallbackPath) : "";
+
+// 详情页封面按内容区最大宽度取档，最长边不超过源图
+const POST_COVER_WIDTHS = [640, 960, 1280];
+const POST_COVER_SIZES = "(max-width: 768px) 96vw, 1024px";
+const postCover =
+	(await buildCoverImage({
+		image: processedImage,
+		basePath: getFileDirFromPath(entry.filePath || ""),
+		widths: POST_COVER_WIDTHS,
+		sizes: POST_COVER_SIZES,
+	})) ??
+	(coverFallbackPath
+		? await buildCoverImage({
+				image: coverFallbackPath,
+				widths: POST_COVER_WIDTHS,
+				sizes: POST_COVER_SIZES,
+			})
+		: null);
+
+const showPostCover = Boolean(coverImageConfig.enableInPost && postCover);
+
+dayjs.extend(utc);
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const shareTitle = entry.data.title;
+const shareDescription = entry.data.description || entry.data.title;
+const shareText = [shareTitle, canonicalUrl].join(" ");
+const qqShareUrl = new URL("https://connect.qq.com/widget/shareqq/index.html");
+qqShareUrl.searchParams.set("url", canonicalUrl);
+qqShareUrl.searchParams.set("title", shareTitle);
+qqShareUrl.searchParams.set("summary", shareDescription);
+const emailShareUrl =
+	"mailto:?subject=" +
+	encodeURIComponent(shareTitle) +
+	"&body=" +
+	encodeURIComponent(shareText);
+const feishuShareUrl =
+	"https://applink.feishu.cn/client/web_url/open?url=" +
+	encodeURIComponent(canonicalUrl);
+const xShareUrl =
+	"https://x.com/intent/post?url=" +
+	encodeURIComponent(canonicalUrl) +
+	"&text=" +
+	encodeURIComponent(shareTitle);
+const whatsAppShareUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+const shareQrCode = siteConfig.postShare
+	? await QRCode.toDataURL(canonicalUrl, {
+			margin: 1,
+			width: 192,
+			errorCorrectionLevel: "M",
+			color: { dark: "#000000", light: "#ffffff" },
+		})
+	: "";
+const defaultStructuredImageUrl = new URL(siteConfig.defaultOgImage, Astro.site)
+	.href;
+const structuredImageUrl = postCover
+	? new URL(postCover.src, Astro.site).href
+	: defaultStructuredImageUrl;
+// 本地封面在构建期能拿到确定尺寸，输出带宽高的 ImageObject；远程图只有 URL
+const structuredImage =
+	postCover?.width && postCover.height
+		? {
+				"@type": "ImageObject",
+				url: structuredImageUrl,
+				width: postCover.width,
+				height: postCover.height,
+			}
+		: structuredImageUrl;
+
+const siteRoot = new URL("/", Astro.site).href;
+
+// 标签未必都有枢纽页（碎片化标签不建页），所以按 name → 地址查表，
+// 查不到就退回归档页过滤，避免链到不存在的 /tags/<slug>/
+const tagUrlMap = new Map<string, string>();
+for (const tag of await getTagList()) {
+	tagUrlMap.set(tag.name, tag.url);
+}
+const resolveTagHref = (tag: string): string =>
+	tagUrlMap.get(tag.trim()) ?? getTagArchiveUrl(tag);
+
+// 分类现有独立静态路由（/categories/<slug>/），面包屑直接指向它；
+// 未分类文章不编造中间节点。
+const breadcrumbItems: { name: string; url: string }[] = [
+	{ name: siteConfig.title, url: siteRoot },
+];
+const entryCategory = entry.data.category?.trim();
+if (entryCategory) {
+	breadcrumbItems.push({
+		name: entryCategory,
+		url: new URL(getCategoryUrl(entryCategory), Astro.site).href,
+	});
+}
+breadcrumbItems.push({ name: entry.data.title, url: canonicalUrl });
+
+const jsonLd = {
+	"@context": "https://schema.org",
+	// author / publisher / isPartOf 用 @id 引用站点级实体，而 JSON-LD 的 @id 不跨文档
+	// 解析，所以 Person / Organization / WebSite 必须同图输出（详见 schema-utils.ts）。
+	"@graph": [
+		{
+			"@type": ["BlogPosting", "TechArticle"],
+			// 文章实体与承载它的 WebPage 是两个节点，不能共用 canonicalUrl 当 @id
+			"@id": `${canonicalUrl}#article`,
+			headline: entry.data.title,
+			description: entry.data.description || entry.data.title,
+			keywords: entry.data.tags,
+			articleSection: entry.data.category || i18n(I18nKey.uncategorized),
+			wordCount: remarkPluginFrontmatter.words,
+			image: structuredImage,
+			author: { "@id": `${siteRoot}#person` },
+			publisher: { "@id": `${siteRoot}#organization` },
+			isPartOf: { "@id": `${siteRoot}#website` },
+			url: canonicalUrl,
+			datePublished: formatDateToYYYYMMDD(entry.data.published),
+			...(entry.data.updated && {
+				dateModified: formatDateToYYYYMMDD(entry.data.updated),
+			}),
+			mainEntityOfPage: {
+				"@type": "WebPage",
+				"@id": canonicalUrl,
+			},
+			inLanguage: entry.data.lang
+				? entry.data.lang.replace("_", "-")
+				: siteConfig.lang.replace("_", "-"),
+		},
+		buildPersonEntity(Astro.site),
+		buildOrganizationEntity(Astro.site),
+		buildWebSiteEntity(Astro.site),
+		{
+			"@type": "BreadcrumbList",
+			"@id": `${canonicalUrl}#breadcrumb`,
+			itemListElement: breadcrumbItems.map((item, index) => ({
+				"@type": "ListItem",
+				position: index + 1,
+				name: item.name,
+				item: item.url,
+			})),
+		},
+	],
+};
+
+const serializedJsonLd = serializeJsonLd(jsonLd);
+---
+
+<MainGridLayout
+  banner={processedImage}
+  title={entry.data.title}
+  description={entry.data.description}
+  lang={entry.data.lang}
+  setOGTypeArticle={true}
+  postSlug={entry.id}
+  postCategory={entry.data.category || undefined}
+  ogImage={structuredImageUrl}
+  bannerPostMeta={bannerPostMeta}
+  articleMeta={{
+    published: entry.data.published,
+    updated: entry.data.updated,
+    author: entry.data.author || homeConfig.name,
+    category: entry.data.category || undefined,
+    tags: entry.data.tags,
+  }}
+>
+  <!-- KaTeX 按需加载 - 仅在文章页面 -->
+  <KatexManager slot="head" />
+  
+  <script
+    is:inline
+    slot="head"
+    type="application/ld+json"
+    set:html={serializedJsonLd}
+  />
+  <!-- Layer 1: Title + meta -->
+  <div class="post-hero rounded-(--radius-large) mb-2 onload-animation">
+    <div class="post-hero__content">
+      <PostHeaderNav category={entry.data.category || undefined} />
+
+      <h1
+        data-pagefind-body
+        data-pagefind-weight="10"
+        data-pagefind-meta="title"
+        class="post-hero__title"
+      >
+        {entry.data.title}
+      </h1>
+
+      <div class="post-hero__info">
+        <div class="post-hero__meta-row">
+          {publishedDateParts.map((part, index) => (
+            <>
+              <span class="post-hero__meta-item">{part}</span>
+              {index < publishedDateParts.length - 1 && (
+                <span class="post-hero__meta-dot" aria-hidden="true">·</span>
+              )}
+            </>
+          ))}
+
+          <span class="post-hero__meta-dot">·</span>
+
+          <span class="post-hero__meta-item">
+            {remarkPluginFrontmatter.words} {i18n(I18nKey.wordsCount)}
+          </span>
+
+          <span class="post-hero__meta-dot">·</span>
+
+          <span class="post-hero__meta-item">
+            {remarkPluginFrontmatter.minutes} {i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
+          </span>
+
+          <span class="post-hero__meta-dot">·</span>
+
+          <span class="post-hero__views"><VisitorCount id={entry.id} compact /></span>
+
+          {siteConfig.postShare && (
+            <>
+              <span class="post-hero__meta-dot" aria-hidden="true">·</span>
+
+              <div
+                class="post-hero__share-menu"
+                tabindex="0"
+                role="group"
+                aria-label={i18n(I18nKey.shareArticle)}
+                data-pagefind-ignore
+              >
+                <span class="post-hero__share-trigger">
+                  <Icon name="material-symbols:share" aria-hidden="true" />
+                  <span>{i18n(I18nKey.shareArticle)}</span>
+                </span>
+
+                <div class="post-hero__share-popover" aria-label={i18n(I18nKey.shareArticle)}>
+                  <div class="post-hero__share-qr">
+                    <img
+                      class="post-hero__share-qr-image"
+                      src={shareQrCode}
+                      alt={i18n(I18nKey.scanToShare)}
+                      width="96"
+                      height="96"
+                    />
+                    <span class="post-hero__share-qr-label">{i18n(I18nKey.scanToShare)}</span>
+                  </div>
+
+                  <div class="post-hero__share-content">
+                    <span class="post-hero__share-title">{i18n(I18nKey.shareArticle)}</span>
+
+                    <div class="post-hero__share-actions">
+                      <a
+                        class="post-hero__share-action post-hero__share-action--qq"
+                        href={qqShareUrl.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={i18n(I18nKey.shareToQQ)}
+                        title={i18n(I18nKey.shareToQQ)}
+                      >
+                        <span class="post-hero__share-action-icon"><Icon name="fa7-brands:qq" aria-hidden="true" /></span>
+                        <span class="post-hero__share-action-label">{i18n(I18nKey.shareQQ)}</span>
+                      </a>
+                      <a
+                        class="post-hero__share-action post-hero__share-action--email"
+                        href={emailShareUrl}
+                        aria-label={i18n(I18nKey.shareByEmail)}
+                        title={i18n(I18nKey.shareByEmail)}
+                      >
+                        <span class="post-hero__share-action-icon"><Icon name="material-symbols:mail-outline-rounded" aria-hidden="true" /></span>
+                        <span class="post-hero__share-action-label">{i18n(I18nKey.shareEmail)}</span>
+                      </a>
+                      <a
+                        class="post-hero__share-action post-hero__share-action--feishu"
+                        href={feishuShareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={i18n(I18nKey.shareToFeishu)}
+                        title={i18n(I18nKey.shareToFeishu)}
+                      >
+                        <span class="post-hero__share-action-icon"><Icon name="material-symbols:send-outline-rounded" aria-hidden="true" /></span>
+                        <span class="post-hero__share-action-label">{i18n(I18nKey.shareFeishu)}</span>
+                      </a>
+                      <a
+                        class="post-hero__share-action post-hero__share-action--x"
+                        href={xShareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={i18n(I18nKey.shareToX)}
+                        title={i18n(I18nKey.shareToX)}
+                      >
+                        <span class="post-hero__share-action-icon"><Icon name="fa7-brands:x-twitter" aria-hidden="true" /></span>
+                        <span class="post-hero__share-action-label">{i18n(I18nKey.shareX)}</span>
+                      </a>
+                      <a
+                        class="post-hero__share-action post-hero__share-action--whatsapp"
+                        href={whatsAppShareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={i18n(I18nKey.shareToWhatsApp)}
+                        title={i18n(I18nKey.shareToWhatsApp)}
+                      >
+                        <span class="post-hero__share-action-icon"><Icon name="fa7-brands:whatsapp" aria-hidden="true" /></span>
+                        <span class="post-hero__share-action-label">{i18n(I18nKey.shareWhatsApp)}</span>
+                      </a>
+                      <button
+                        class="post-hero__share-action post-hero__share-action--copy"
+                        type="button"
+                        data-post-share-copy
+                        data-copy-link={canonicalUrl}
+                        data-copy-label={i18n(I18nKey.copyLink)}
+                        data-copied-label={i18n(I18nKey.copied)}
+                        aria-label={i18n(I18nKey.copyLink)}
+                        title={i18n(I18nKey.copyLink)}
+                      >
+                        <span class="post-hero__share-action-icon"><Icon name="material-symbols:content-copy-outline-rounded" aria-hidden="true" /></span>
+                        <span class="post-hero__share-action-label" data-post-share-copy-label>{i18n(I18nKey.copyLink)}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <span class="sr-only" role="status" aria-live="polite" data-post-share-status></span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div class="post-hero__taxonomy-row">
+          <a
+            href={getCategoryUrl(entry.data.category || null)}
+            class="post-hero__taxonomy-link post-hero__taxonomy-link--category"
+          >
+            {entry.data.category || i18n(I18nKey.uncategorized)}
+          </a>
+
+          {entry.data.tags && entry.data.tags.length > 0 && entry.data.tags.map((tag) => (
+            <span class="post-hero__taxonomy-item">
+              <span class="post-hero__taxonomy-separator" aria-hidden="true">/</span>
+              <a href={resolveTagHref(tag)} class="post-hero__taxonomy-link post-hero__taxonomy-link--tag">
+                {tag.trim()}
+              </a>
+            </span>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 2: 过期提示 / AI 摘要 / 封面图 -->
+  {
+    (entry.data.description || siteConfig.showLastModified || (showPostCover && postCover)) && (() => {
+      const lastModified = dayjs(entry.data.updated || entry.data.published);
+      const dateStr = lastModified.format("YYYY-MM-DD");
+      const outdatedThreshold = siteConfig.outdatedThreshold ?? 1;
+      return (
+        <div class="post-intro-card mb-8">
+          {
+            siteConfig.showLastModified && (
+              <div
+                id="outdated-info"
+                class="post-intro-card__outdated hidden"
+                data-date={lastModified.toISOString()}
+                data-threshold={outdatedThreshold}
+              >
+                <div class="post-intro-card__section">
+                  <div class="post-intro-card__row">
+                    <Icon name="material-symbols:info-outline-rounded" class="post-intro-card__icon" />
+                    <span class="post-intro-card__text">
+                      {i18n(I18nKey.lastModifiedPrefix)}{dateStr}
+                      <span id="days-ago-text-intro" class="outdated-days" data-template={i18n(I18nKey.lastModifiedDaysAgo)}></span>
+                      <span id="outdated-warning-intro" class="outdated-warning hidden">，{i18n(I18nKey.lastModifiedOutdated)}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+          {entry.data.description && (
+            <>
+              {siteConfig.showLastModified && <div class="post-intro-card__divider" />}
+              <details class="post-intro-card__details" open>
+                <summary class="post-intro-card__summary">
+                  <span class="post-intro-card__summary-title">
+                    <Icon
+                      name="material-symbols:auto-awesome"
+                      class="post-intro-card__summary-icon"
+                      aria-hidden="true"
+                    />
+                    <span>{i18n(I18nKey.postAiSummaryLabel)}</span>
+                    <span class="post-intro-card__summary-model">- {postAiSummaryModel}</span>
+                  </span>
+                  <Icon
+                    name="material-symbols:keyboard-arrow-down-rounded"
+                    class="post-intro-card__summary-arrow"
+                    aria-hidden="true"
+                  />
+                </summary>
+                <div class="post-intro-card__section post-intro-card__section--summary">
+                  <p class="post-intro-card__desc">{entry.data.description}</p>
+                </div>
+              </details>
+            </>
+          )}
+          {showPostCover && postCover && (
+            <>
+              {(siteConfig.showLastModified || entry.data.description) && (
+                <div class="post-intro-card__divider" />
+              )}
+              <details class="post-intro-card__details" open>
+                <summary class="post-intro-card__summary">
+                  <span class="post-intro-card__summary-title">
+                    <Icon
+                      name="material-symbols:image-outline-rounded"
+                      class="post-intro-card__summary-icon"
+                      aria-hidden="true"
+                    />
+                    <span>{i18n(I18nKey.postCoverLabel)}</span>
+                  </span>
+                  <Icon
+                    name="material-symbols:keyboard-arrow-down-rounded"
+                    class="post-intro-card__summary-arrow"
+                    aria-hidden="true"
+                  />
+                </summary>
+                <div class="post-intro-card__section post-intro-card__section--cover">
+                  <div id="post-cover" class="post-intro-card__cover" style={postCover.lqipStyle}>
+                    <CoverImage
+                      cover={postCover}
+                      alt={`${entry.data.title} - ${i18n(I18nKey.coverImageAltSuffix)}`}
+                      loading="eager"
+                      fetchpriority="high"
+                      apiUrls={coverApiUrls}
+                      fallbackSrc={coverFallbackUrl || undefined}
+                    />
+                  </div>
+                </div>
+              </details>
+            </>
+          )}
+        </div>
+      );
+    })()
+  }
+
+  <div class="flex w-full rounded-(--radius-large) overflow-hidden relative mb-2">
+    <div id="post-container" class="card-base z-10 px-3 pb-4 pt-0 relative w-full">
+      {entry.data.password ? (
+        <EncryptedPost password={entry.data.password} slug={entry.id} hint={entry.data.passwordHint}>
+          <Markdown class="mb-6 markdown-content onload-animation">
+            <Content />
+          </Markdown>
+
+          <PostFooterActions
+            title={entry.data.title}
+            published={entry.data.published}
+            id={entry.id}
+            author={entry.data.author}
+            sourceLink={entry.data.sourceLink}
+            licenseName={entry.data.licenseName}
+            licenseUrl={entry.data.licenseUrl}
+          />
+          <RelatedPosts
+            currentId={entry.id}
+            tags={entry.data.tags}
+            category={entry.data.category || undefined}
+          />
+        </EncryptedPost>
+      ) : (
+        <>
+          <Markdown class="mb-6 markdown-content onload-animation">
+            <Content />
+          </Markdown>
+
+          <PostFooterActions
+            title={entry.data.title}
+            published={entry.data.published}
+            id={entry.id}
+            author={entry.data.author}
+            sourceLink={entry.data.sourceLink}
+            licenseName={entry.data.licenseName}
+            licenseUrl={entry.data.licenseUrl}
+          />
+          <RelatedPosts
+            currentId={entry.id}
+            tags={entry.data.tags}
+            category={entry.data.category || undefined}
+          />
+        </>
+      )}
+    </div>
+  </div>
+
+  <script>
+    import dayjs from "dayjs";
+    import { definePageIsland } from "@/utils/swup-lifecycle";
+
+    function initPostCoverImage() {
+      const cover = document.getElementById("post-cover");
+      if (!cover || cover.dataset.initialized === "true") return;
+      cover.dataset.initialized = "true";
+
+      // 候选地址与兜底图都由 CoverImage 组件写在 <img> 上
+      const image = cover.querySelector<HTMLImageElement>("img[data-cover-image]");
+      if (!image) return;
+
+      let apiUrls: string[] = [];
+      if (image.dataset.apiUrls) {
+        try {
+          apiUrls = JSON.parse(image.dataset.apiUrls);
+        } catch {
+          apiUrls = [];
+        }
+      }
+
+      let currentApiIndex = 1;
+      let triedFallback = false;
+      const retryImage = () => {
+        if (currentApiIndex < apiUrls.length) {
+          image.addEventListener("error", retryImage, { once: true });
+          image.src = apiUrls[currentApiIndex];
+          currentApiIndex += 1;
+          return;
+        }
+
+        const fallbackImage = image.dataset.fallbackSrc;
+        if (fallbackImage && !triedFallback && image.currentSrc !== fallbackImage) {
+          triedFallback = true;
+          // 重试时清掉 srcset，否则浏览器仍按 srcset 选源，src 不生效
+          image.removeAttribute("srcset");
+          image.addEventListener("error", retryImage, { once: true });
+          image.src = fallbackImage;
+        }
+      };
+
+      if (image.complete) {
+        if (image.naturalWidth === 0) retryImage();
+      } else {
+        image.addEventListener("error", retryImage, { once: true });
+      }
+    }
+
+    function checkOutdated() {
+      const info = document.getElementById('outdated-info');
+      if (!info) return;
+      const lastModified = dayjs(info.dataset.date);
+      const daysDiff = dayjs().diff(lastModified, "day");
+      const threshold = Number(info.dataset.threshold);
+
+      if (daysDiff >= threshold) {
+        info.classList.remove('hidden');
+        if (daysDiff >= 1) {
+          const textEl = document.getElementById('days-ago-text-intro');
+          if (textEl && textEl.dataset.template) {
+            textEl.textContent = `，${textEl.dataset.template.replace("{days}", daysDiff.toString())}`;
+          }
+          const warningEl = document.getElementById('outdated-warning-intro');
+          if (warningEl) warningEl.classList.remove('hidden');
+        }
+      }
+    }
+
+    function fallbackCopy(text: string): boolean {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      textarea.style.pointerEvents = "none";
+      document.body.appendChild(textarea);
+      textarea.select();
+      // execCommand 已废弃，但在 Clipboard API 不可用的非安全上下文里仍是唯一选择；
+      // 显式重写类型以绕开 astro check 的废弃提示
+      const execCommand = (
+        document as Document & { execCommand: (command: string) => boolean }
+      ).execCommand.bind(document);
+      const copied = execCommand("copy");
+      textarea.remove();
+      return copied;
+    }
+
+    async function copyPostShareLink(button: HTMLButtonElement) {
+      const link = button.dataset.copyLink;
+      if (!link) return;
+
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(link);
+        } else if (!fallbackCopy(link)) {
+          throw new Error("Copy command was unavailable");
+        }
+
+        const menu = button.closest(".post-hero__share-menu");
+        const status = menu?.querySelector<HTMLElement>("[data-post-share-status]");
+        const label = button.querySelector<HTMLElement>("[data-post-share-copy-label]");
+        const originalLabel = button.dataset.copyLabel || "";
+        const copiedLabel = button.dataset.copiedLabel || originalLabel;
+
+        status?.replaceChildren(copiedLabel);
+        label?.replaceChildren(copiedLabel);
+        button.classList.add("is-copied");
+        button.setAttribute("aria-label", copiedLabel);
+        button.title = copiedLabel;
+
+        window.setTimeout(() => {
+          button.classList.remove("is-copied");
+          label?.replaceChildren(originalLabel);
+          button.setAttribute("aria-label", originalLabel);
+          button.title = originalLabel;
+        }, 1600);
+      } catch {
+        button.focus();
+      }
+    }
+
+    function initPostShare() {
+      document.querySelectorAll<HTMLButtonElement>("[data-post-share-copy]").forEach((button) => {
+        if (button.dataset.initialized === "true") return;
+        button.dataset.initialized = "true";
+        button.addEventListener("click", () => void copyPostShareLink(button));
+      });
+    }
+
+    // checkOutdated 原先只挂在 astro:page-load 上、顶层没调，
+    // 而该事件首次加载并不触发 —— 直接打开文章页时「内容可能过时」提示从来不显示。
+    // 三个初始化统一走 definePageIsland，首次加载与每次导航各跑一次
+    definePageIsland({
+      name: "post-detail",
+      mount: () => {
+        initPostCoverImage();
+        checkOutdated();
+        initPostShare();
+      },
+    });
+  </script>
+
+  <div
+    class="post-pager-row flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full"
+  >
+    <!-- 上一篇：左卡，大图标垂直撑满两层文字（标签+文章名），背景与相关文章卡一致 -->
+    <a
+      href={entry.data.prevSlug ? getPostUrlBySlug(entry.data.prevSlug) : url("/")}
+      class="w-full overflow-hidden active:scale-95"
+    >
+      <div class="rounded-2xl w-full h-20 max-w-full px-5 flex items-center gap-4 bg-(--article-surface-bg) transition-colors duration-150 hover:bg-(--btn-card-bg-hover)">
+        <Icon
+          name="material-symbols:chevron-left-rounded"
+          class="text-[2.75rem] text-(--primary) shrink-0"
+          aria-hidden="true"
+        />
+        <div class="flex flex-col justify-center gap-0.5 overflow-hidden min-w-0">
+          <span class="text-xs text-(--content-meta)">{i18n(I18nKey.prevPost)}</span>
+          <span class="font-bold truncate">
+            {entry.data.prevTitle || i18n(I18nKey.home)}
+          </span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 下一篇：右卡，镜像布局 -->
+    <a
+      href={entry.data.nextSlug ? getPostUrlBySlug(entry.data.nextSlug) : url("/")}
+      class="w-full overflow-hidden active:scale-95"
+    >
+      <div class="rounded-2xl w-full h-20 max-w-full px-5 flex items-center justify-end gap-4 bg-(--article-surface-bg) transition-colors duration-150 hover:bg-(--btn-card-bg-hover)">
+        <div class="flex flex-col justify-center items-end gap-0.5 overflow-hidden min-w-0 text-right">
+          <span class="text-xs text-(--content-meta)">{i18n(I18nKey.nextPost)}</span>
+          <span class="font-bold truncate">
+            {entry.data.nextTitle || i18n(I18nKey.home)}
+          </span>
+        </div>
+        <Icon
+          name="material-symbols:chevron-right-rounded"
+          class="text-[2.75rem] text-(--primary) shrink-0"
+          aria-hidden="true"
+        />
+      </div>
+    </a>
+  </div>
+
+  <!-- 评论 -->
+  {entry.data.comment && !entry.data.password && <Comment post={entry} />}
+</MainGridLayout>

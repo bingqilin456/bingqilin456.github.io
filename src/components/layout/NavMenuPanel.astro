@@ -1,0 +1,211 @@
+---
+import { Picture } from "astro:assets";
+import * as path from "node:path";
+import Icon from "@components/common/Icon.astro";
+import type { ImageMetadata } from "astro";
+import { siteConfig } from "@/config";
+import { LinkPresets } from "@/constants/link-presets";
+import { LinkPreset, type NavBarLink } from "@/types/config";
+import { getFallbackFormat, getImageFormats } from "@/utils/image-utils";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	links: NavBarLink[];
+}
+
+const processedLinks = Astro.props.links.map((link: NavBarLink) => ({
+	...link,
+	children: link.children?.map((child: NavBarLink | LinkPreset): NavBarLink => {
+		if (typeof child === "number") {
+			return LinkPresets[child];
+		}
+		return child;
+	}),
+}));
+
+// Logo 加载逻辑（与 Navbar 一致，用于移动端抽屉顶部品牌区）
+const navbarTitle = siteConfig.navbar.title || siteConfig.title;
+const logoValue = siteConfig.navbar.logo?.value || "";
+const isLocalSrcLogo =
+	siteConfig.navbar.logo?.type === "image" &&
+	logoValue &&
+	!logoValue.startsWith("/") &&
+	!logoValue.startsWith("http");
+let logoImg: ImageMetadata | null = null;
+
+if (isLocalSrcLogo) {
+	const files = import.meta.glob<ImageMetadata>(
+		"../../**/*.{png,jpg,jpeg,webp,avif,gif,svg}",
+		{ import: "default" },
+	);
+	const normalizedPath = path
+		.normalize(path.join("../../", logoValue))
+		.replace(/\\/g, "/");
+	const file = files[normalizedPath];
+	if (file) logoImg = await file();
+}
+---
+
+<div id="nav-drawer-overlay" class="nav-drawer-overlay" aria-hidden="true"></div>
+
+<div id="nav-menu-panel" class="nav-drawer">
+	<a href={url('/')} class="nav-drawer-brand">
+		{siteConfig.navbar.logo?.type === "icon" ? (
+			<Icon name={siteConfig.navbar.logo.value || "material-symbols:home-pin-outline"} is:inline class="text-[1.5rem] flex-shrink-0" />
+		) : siteConfig.navbar.logo?.type === "image" && logoImg ? (
+			logoImg.format === "svg" ? (
+				<img src={logoImg.src} alt={siteConfig.navbar.logo.alt || siteConfig.title} class="nav-drawer-brand-logo" />
+			) : (
+				<Picture
+					src={logoImg}
+					alt={siteConfig.navbar.logo.alt || siteConfig.title}
+					class="nav-drawer-brand-logo"
+					formats={getImageFormats()}
+					fallbackFormat={getFallbackFormat()}
+					widths={[36, 72]}
+					loading="eager"
+				/>
+			)
+		) : siteConfig.navbar.logo?.type === "image" ? (
+			<img src={url(siteConfig.navbar.logo.value)} alt={siteConfig.navbar.logo.alt || siteConfig.title} class="nav-drawer-brand-logo" />
+		) : siteConfig.navbar.logo?.type === "url" ? (
+			<img src={siteConfig.navbar.logo.value} alt={siteConfig.navbar.logo.alt || siteConfig.title} class="nav-drawer-brand-logo" />
+		) : (
+			<Icon name="material-symbols:home-pin-outline" is:inline class="text-[1.5rem] flex-shrink-0" />
+		)}
+		<span class="nav-drawer-brand-text">{navbarTitle}</span>
+	</a>
+
+	<div class="nav-drawer-header">
+		<span class="nav-drawer-title font-mono uppercase tracking-[0.15em] text-sm font-semibold">Menu</span>
+		<button aria-label="Close menu" id="nav-drawer-close" class="nav-drawer-close-btn">
+			<Icon name="material-symbols:close-rounded" is:inline class="text-[1.5rem]" />
+		</button>
+	</div>
+
+	<nav class="nav-drawer-body">
+		{processedLinks.map((link, index) => (
+			<div
+				class="nav-drawer-item"
+				style={`--item-index: ${index}`}
+			>
+				{link.children && link.children.length > 0 ? (
+					<div class="mobile-dropdown">
+						<div class="nav-drawer-link group nav-drawer-section-title">
+							<div class="flex items-center gap-3">
+								<span class="nav-drawer-link-text">{link.name}</span>
+							</div>
+						</div>
+						<div class="mobile-submenu mobile-submenu--flat">
+							{link.children.map((child) => {
+								if (child.action) {
+									return <button type="button" class="nav-drawer-sublink group" data-action={child.action}><div class="flex items-center gap-3">{child.icon && <Icon name={child.icon} is:inline class="text-[1.1rem]" />}<span>{child.name}</span></div></button>;
+								}
+								return <a href={child.external ? child.url : url(child.url)} class="nav-drawer-sublink group" target={child.external ? "_blank" : null}><div class="flex items-center gap-3">{child.icon && <Icon name={child.icon} is:inline class="text-[1.1rem]" />}<span>{child.name}</span></div>{child.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.7rem] text-black/25 dark:text-white/25" />}</a>;
+							})}
+						</div>
+					</div>
+				) : (
+					<a href={link.external ? link.url : url(link.url)}
+						class="nav-drawer-link group"
+						target={link.external ? "_blank" : null}
+					>
+						<div class="flex items-center gap-3">
+							{link.icon && <Icon name={link.icon} is:inline class="text-[1.25rem] nav-drawer-icon" />}
+							<span class="nav-drawer-link-text">{link.name}</span>
+						</div>
+						{link.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline
+							class="text-[0.7rem] text-black/25 dark:text-white/25"
+						/>}
+					</a>
+				)}
+			</div>
+		))}
+	</nav>
+</div>
+
+<!-- 样式已迁移至 src/styles/layout/nav-menu-panel.css -->
+
+<script>
+import { definePageIsland } from "@/utils/swup-lifecycle";
+
+let drawerAbortController: AbortController | null = null;
+
+function initNavDrawer() {
+	if (drawerAbortController) drawerAbortController.abort();
+	drawerAbortController = new AbortController();
+	const signal = drawerAbortController.signal;
+
+	const panelEl = document.getElementById('nav-menu-panel');
+	const overlayEl = document.getElementById('nav-drawer-overlay');
+	const menuBtn = document.getElementById('nav-menu-switch');
+	const closeBtn = document.getElementById('nav-drawer-close');
+
+	if (!panelEl || !overlayEl) return;
+
+	const panel = panelEl;
+	const overlay = overlayEl;
+
+	function openDrawer() {
+		panel.classList.add('is-open');
+		overlay.classList.add('is-open');
+		overlay.setAttribute('aria-hidden', 'false');
+		document.body.style.overflow = 'hidden';
+	}
+
+	function closeDrawer() {
+		panel.classList.remove('is-open');
+		overlay.classList.remove('is-open');
+		overlay.setAttribute('aria-hidden', 'true');
+		document.body.style.overflow = '';
+	}
+
+	closeDrawer();
+
+	if (menuBtn) {
+		menuBtn.onclick = (e) => {
+			e.stopPropagation();
+			const isOpen = panel.classList.contains('is-open');
+			if (isOpen) {
+				closeDrawer();
+			} else {
+				openDrawer();
+			}
+		};
+	}
+
+	if (closeBtn) {
+		closeBtn.onclick = () => closeDrawer();
+	}
+
+	overlay.addEventListener('click', () => closeDrawer(), { signal });
+
+	// 处理 action 按钮
+	panel.addEventListener('click', (e) => {
+		const actionBtn = (e.target as HTMLElement).closest('[data-action]');
+		if (actionBtn) {
+			const action = actionBtn.getAttribute('data-action');
+			if (action) {
+				window.dispatchEvent(new CustomEvent(action));
+				closeDrawer();
+			}
+		}
+	}, { signal });
+
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape' && panel.classList.contains('is-open')) {
+			closeDrawer();
+		}
+	}, { signal });
+}
+
+// 面板在 Swup 容器之外，但抽屉里的链接高亮依赖当前路径，每次导航都要重建
+definePageIsland({
+	name: "nav-menu-panel",
+	mount: initNavDrawer,
+	unmount: () => {
+		drawerAbortController?.abort();
+		drawerAbortController = null;
+	},
+});
+</script>

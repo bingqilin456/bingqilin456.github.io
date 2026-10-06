@@ -1,0 +1,316 @@
+---
+import ArticleCard from "@/components/pages/article-list/ArticleCard.astro";
+import ArticlePagination from "@/components/pages/article-list/ArticlePagination.astro";
+import PinnedArticleList from "@/components/pages/article-list/PinnedArticleList.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type {
+	ArticleListPost,
+	UmamiPageviewConfig,
+} from "@/types/article-list";
+
+interface Props {
+	pinnedPosts: ArticleListPost[];
+	regularPosts: ArticleListPost[];
+	totalPosts: number;
+	currentPage: number;
+	totalPages: number;
+	umamiPageviews?: UmamiPageviewConfig;
+	fallbackImageUrl: string;
+	showCoverLoading?: boolean;
+}
+
+const {
+	pinnedPosts,
+	regularPosts,
+	totalPosts,
+	currentPage,
+	totalPages,
+	umamiPageviews,
+	fallbackImageUrl,
+	showCoverLoading = false,
+} = Astro.props;
+const totalPostLabel = i18n(
+	totalPosts === 1 ? I18nKey.postCount : I18nKey.postsCount,
+);
+---
+
+<div
+	class="article-list"
+	data-article-list
+	data-article-list-umami-enabled={umamiPageviews?.enabled ? "true" : "false"}
+	data-article-list-umami-api-base={umamiPageviews?.apiBase || ""}
+	data-article-list-umami-share-id={umamiPageviews?.shareId || ""}
+>
+	<PinnedArticleList
+		posts={pinnedPosts}
+		fallbackImageUrl={fallbackImageUrl}
+		showCoverLoading={showCoverLoading}
+	/>
+
+	<header class="article-list-toolbar">
+		<div class="article-list-toolbar__summary">
+			<h2 id="article-list-regular-title" class="article-list-section-title">
+				{i18n(I18nKey.articles)}
+			</h2>
+			<div
+				class="article-list-toolbar__total"
+				aria-label={`${i18n(I18nKey.totalPostsPrefix)} ${totalPosts} ${totalPostLabel}`}
+			>
+				<span>{i18n(I18nKey.totalPostsPrefix)}</span>
+				<strong>{totalPosts}</strong>
+				<span>{totalPostLabel}</span>
+			</div>
+		</div>
+	</header>
+
+	<section class="article-list-regular" aria-labelledby="article-list-regular-title">
+		{regularPosts.length > 0 ? (
+			<div class="article-list-card-grid">
+				{regularPosts.map((post) => (
+					<ArticleCard
+						post={post}
+						fallbackImageUrl={fallbackImageUrl}
+						showCoverLoading={showCoverLoading}
+					/>
+				))}
+			</div>
+		) : (
+			<div class="article-list-empty">
+				<span class="article-list-empty__title">{i18n(I18nKey.noRegularPosts)}</span>
+				<span class="article-list-empty__meta">{i18n(I18nKey.noPostsHint)}</span>
+			</div>
+		)}
+	</section>
+
+	<ArticlePagination currentPage={currentPage} totalPages={totalPages} />
+</div>
+
+<script>
+	import {
+		createArticleCoverLifecycle,
+		parseArticleCoverApiUrls,
+		type ArticleCoverLifecycle,
+	} from "@/utils/article-cover-lifecycle";
+	import {
+		createEmptyUmamiPageviewLookup,
+		getUmamiPageviewLookup,
+		normalizeUmamiPageviewPath,
+	} from "@/utils/umami-pageviews";
+	import { definePageIsland } from "@/utils/swup-lifecycle";
+
+	let cleanupActiveArticleList: (() => void) | undefined;
+
+	function initArticleList() {
+		cleanupActiveArticleList?.();
+		cleanupActiveArticleList = undefined;
+
+		const articleListRoot = document.querySelector<HTMLElement>(
+			"[data-article-list]",
+		);
+		if (!articleListRoot) return;
+		const articleList = articleListRoot;
+
+		const coverHosts = Array.from(
+			articleList.querySelectorAll<HTMLElement>(
+				"[data-article-list-cover-wrap]",
+			),
+		);
+		const pinnedList = articleList.querySelector<HTMLElement>(
+			"[data-article-list-pinned]",
+		);
+		const controller = new AbortController();
+		const { signal } = controller;
+		let disposed = false;
+		let pageviewLookup: Map<string, number> | null = null;
+		const coverLifecycles = new Map<HTMLElement, ArticleCoverLifecycle>();
+
+		function renderPageviews() {
+			articleList
+				.querySelectorAll<HTMLElement>("[data-article-list-pageview]")
+				.forEach((node) => {
+					if (pageviewLookup === null) {
+						node.textContent = "-";
+						return;
+					}
+					const path = normalizeUmamiPageviewPath(
+						node.dataset.articleListPageviewPath || "",
+					);
+					node.textContent = (pageviewLookup.get(path) || 0).toLocaleString();
+				});
+		}
+
+		function initCoverLoading() {
+			coverHosts.forEach((wrap) => {
+				const image = wrap.querySelector<HTMLImageElement>("[data-cover-image]");
+				if (!image) return;
+
+				const lifecycle = createArticleCoverLifecycle({
+					host: wrap,
+					image,
+					apiUrls: parseArticleCoverApiUrls(image.dataset.apiUrls),
+					fallbackSrc: image.dataset.fallbackSrc,
+					baseUrl: window.location.href,
+					signal,
+				});
+				coverLifecycles.set(wrap, lifecycle);
+				const pinnedItem = wrap.closest<HTMLElement>(
+					"[data-article-list-pinned-item]",
+				);
+				lifecycle.setVisible(!pinnedItem?.hidden);
+			});
+		}
+
+		function initializePinnedCarousel(): () => void {
+			if (!pinnedList) return () => {};
+
+			const pinnedItems = Array.from(
+				pinnedList.querySelectorAll<HTMLElement>(
+					"[data-article-list-pinned-item]",
+				),
+			);
+			const pinnedDots = Array.from(
+				pinnedList.querySelectorAll<HTMLButtonElement>(
+					"[data-article-list-pinned-dot]",
+				),
+			);
+			if (pinnedItems.length <= 1) return () => {};
+
+			const reducedMotionQuery = window.matchMedia(
+				"(prefers-reduced-motion: reduce)",
+			);
+			if (reducedMotionQuery.matches) {
+				pinnedItems.forEach((item) => {
+					item.hidden = false;
+				});
+				pinnedDots.forEach((dot) => {
+					dot.hidden = true;
+				});
+				return () => {};
+			}
+
+			let activeIndex = Math.max(
+				0,
+				pinnedItems.findIndex((item) => !item.hidden),
+			);
+			let rotationTimer: number | undefined;
+			let fadeTimer: number | undefined;
+
+			function setPinnedCoverVisibility(item: HTMLElement, visible: boolean) {
+				item
+					.querySelectorAll<HTMLElement>("[data-article-list-cover-wrap]")
+					.forEach((wrap) => coverLifecycles.get(wrap)?.setVisible(visible));
+			}
+
+			function updatePinnedDots() {
+				pinnedDots.forEach((dot, index) => {
+					dot.setAttribute("aria-current", String(index === activeIndex));
+				});
+			}
+
+			function stopRotation() {
+				if (rotationTimer === undefined) return;
+				window.clearInterval(rotationTimer);
+				rotationTimer = undefined;
+			}
+
+			function showPinnedItem(nextIndex: number) {
+				if (fadeTimer !== undefined) return;
+				const currentItem = pinnedItems[activeIndex];
+				const resolvedIndex = (nextIndex + pinnedItems.length) % pinnedItems.length;
+				if (resolvedIndex === activeIndex) return;
+				const nextItem = pinnedItems[resolvedIndex];
+
+				currentItem.classList.remove("is-carousel-entering");
+				currentItem.classList.add("is-carousel-leaving");
+				fadeTimer = window.setTimeout(() => {
+					currentItem.hidden = true;
+					setPinnedCoverVisibility(currentItem, false);
+					currentItem.classList.remove("is-carousel-leaving");
+					nextItem.hidden = false;
+					setPinnedCoverVisibility(nextItem, true);
+					nextItem.classList.remove("is-carousel-leaving");
+					void nextItem.offsetWidth;
+					nextItem.classList.add("is-carousel-entering");
+					activeIndex = resolvedIndex;
+					updatePinnedDots();
+					fadeTimer = undefined;
+				}, 180);
+			}
+
+			function showNextPinnedItem() {
+				showPinnedItem(activeIndex + 1);
+			}
+
+			function startRotation() {
+				if (rotationTimer !== undefined) return;
+				rotationTimer = window.setInterval(showNextPinnedItem, 6000);
+			}
+
+			pinnedList.addEventListener("pointerenter", stopRotation, { signal });
+			pinnedList.addEventListener("pointerleave", startRotation, { signal });
+			pinnedList.addEventListener("focusin", stopRotation, { signal });
+			pinnedList.addEventListener(
+				"focusout",
+				(event) => {
+					const relatedTarget = event.relatedTarget;
+					if (!(relatedTarget instanceof Node) || !pinnedList.contains(relatedTarget)) {
+						startRotation();
+					}
+				},
+				{ signal },
+			);
+			pinnedDots.forEach((dot, index) => {
+				dot.addEventListener("click", () => showPinnedItem(index), { signal });
+			});
+
+			startRotation();
+			return () => {
+				stopRotation();
+				if (fadeTimer !== undefined) window.clearTimeout(fadeTimer);
+			};
+		}
+
+		const cleanupPinnedCarousel = initializePinnedCarousel();
+		initCoverLoading();
+		renderPageviews();
+
+		const canLoadPageviews =
+			articleList.dataset.articleListUmamiEnabled === "true" &&
+			!!articleList.dataset.articleListUmamiApiBase &&
+			!!articleList.dataset.articleListUmamiShareId;
+		if (canLoadPageviews) {
+			void getUmamiPageviewLookup({
+				apiBase: articleList.dataset.articleListUmamiApiBase || "",
+				shareId: articleList.dataset.articleListUmamiShareId || "",
+			})
+				.then((lookup) => {
+					if (disposed) return;
+					pageviewLookup = lookup;
+					renderPageviews();
+				})
+				.catch(() => {
+					if (disposed) return;
+					pageviewLookup = createEmptyUmamiPageviewLookup();
+					renderPageviews();
+				});
+		}
+
+		cleanupActiveArticleList = () => {
+			disposed = true;
+			cleanupPinnedCarousel();
+			controller.abort();
+		};
+	}
+
+	// 列表随容器一起被替换：容器替换前先拆掉封面生命周期与 AbortController，
+	// 原先只在下一次 initArticleList() 开头补拆，中间那段时间它们还挂在旧 DOM 上
+	definePageIsland({
+		name: "article-list",
+		mount: initArticleList,
+		unmount: () => {
+			cleanupActiveArticleList?.();
+			cleanupActiveArticleList = undefined;
+		},
+	});
+</script>

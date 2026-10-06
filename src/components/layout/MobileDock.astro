@@ -1,0 +1,953 @@
+---
+import { Picture } from "astro:assets";
+import * as path from "node:path";
+import Icon from "@components/common/Icon.astro";
+import type { ImageMetadata } from "astro";
+import {
+	announcementConfig,
+	navBarConfig,
+	siteConfig,
+	spineModelConfig,
+} from "@/config";
+import { musicPlayerConfig } from "@/config/musicConfig";
+import { LinkPresets } from "@/constants/link-presets";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { LinkPreset, type NavBarLink } from "@/types/config";
+import { getTagList } from "@/utils/content-utils";
+import { getFallbackFormat, getImageFormats } from "@/utils/image-utils";
+import { url } from "@/utils/url-utils";
+
+const resolveLink = (link: NavBarLink | LinkPreset): NavBarLink =>
+	typeof link === "number" ? LinkPresets[link] : link;
+
+const navLinks = navBarConfig.links.map(resolveLink).map((link) => ({
+	...link,
+	children: link.children?.map(resolveLink),
+}));
+const tags = await getTagList();
+const announcements = announcementConfig.items
+	.slice()
+	.sort((a, b) => b.sort - a.sort);
+const siteTitle = siteConfig.navbar.title || siteConfig.title;
+const logoValue = siteConfig.navbar.logo?.value || "";
+const isLocalSrcLogo =
+	siteConfig.navbar.logo?.type === "image" &&
+	logoValue &&
+	!logoValue.startsWith("/") &&
+	!logoValue.startsWith("http");
+let logoImg: ImageMetadata | null = null;
+
+if (isLocalSrcLogo) {
+	const files = import.meta.glob<ImageMetadata>(
+		"../../**/*.{png,jpg,jpeg,webp,avif,gif,svg}",
+		{ import: "default" },
+	);
+	const normalizedPath = path
+		.normalize(path.join("../../", logoValue))
+		.replace(/\\/g, "/");
+	const file = files[normalizedPath];
+	if (file) logoImg = await file();
+}
+const showMusic = musicPlayerConfig.showInNavbar !== false;
+const showAnnouncement = announcements.length > 0;
+const showSpine = !!spineModelConfig?.enable;
+const isHomePath = Astro.url.pathname === "/" || Astro.url.pathname === "";
+---
+
+<div class="mobile-dock__overlay" id="mobile-dock-overlay" aria-hidden="true"></div>
+
+<section
+	class="mobile-dock"
+	id="mobile-dock"
+	data-shape="pill"
+	data-view="menu"
+	aria-label={i18n(I18nKey.tools)}
+>
+	<div class="mobile-dock__bar">
+		<div class="mobile-dock__context">
+			<a class="mobile-dock__site-mark" href={url("/")} aria-label={siteTitle}>
+				{siteConfig.navbar.logo?.type === "icon" ? (
+					<Icon name={siteConfig.navbar.logo.value || "material-symbols:home-pin-outline"} is:inline />
+				) : siteConfig.navbar.logo?.type === "image" && logoImg ? (
+				logoImg.format === "svg" ? (
+					<img src={logoImg.src} alt={siteConfig.navbar.logo.alt || siteTitle} />
+				) : (
+					<Picture
+						src={logoImg}
+						alt={siteConfig.navbar.logo.alt || siteTitle}
+						formats={getImageFormats()}
+						fallbackFormat={getFallbackFormat()}
+						widths={[28, 56]}
+						loading="eager"
+					/>
+				)
+			) : siteConfig.navbar.logo?.type === "image" ? (
+				<img src={url(siteConfig.navbar.logo.value)} alt={siteConfig.navbar.logo.alt || siteTitle} />
+			) : siteConfig.navbar.logo?.type === "url" ? (
+				<img src={siteConfig.navbar.logo.value} alt={siteConfig.navbar.logo.alt || siteTitle} />
+				) : (
+					<Icon name="material-symbols:home-pin-outline" is:inline />
+				)}
+			</a>
+			<button
+				class="mobile-dock__context-action"
+				id="mobile-dock-context-btn"
+				type="button"
+				aria-label={siteTitle}
+			>
+				<span class="mobile-dock__back-mark" aria-hidden="true">
+					<Icon name="material-symbols:arrow-back-rounded" is:inline />
+				</span>
+				<span class="mobile-dock__context-viewport">
+					<span class="mobile-dock__site-title">{siteTitle}</span>
+					<span class="mobile-dock__lyric-viewport" id="mobile-dock-lyric-viewport">
+						<span class="mobile-dock__lyric-text" id="mobile-dock-lyric-text"></span>
+					</span>
+					<span class="mobile-dock__view-title" id="mobile-dock-view-title">{i18n(I18nKey.menu)}</span>
+				</span>
+			</button>
+		</div>
+
+		<button
+			class="mobile-dock__menu-toggle"
+			id="mobile-dock-menu-btn"
+			type="button"
+			aria-label={i18n(I18nKey.menu)}
+			aria-controls="mobile-dock-card"
+			aria-expanded="false"
+		>
+			<span class="mobile-dock__menu-icon" aria-hidden="true">
+				<Icon name="material-symbols:menu-rounded" is:inline />
+			</span>
+			<span class="mobile-dock__close-icon" aria-hidden="true">
+				<Icon name="material-symbols:close-rounded" is:inline />
+			</span>
+		</button>
+	</div>
+
+	<div class="mobile-dock__card" id="mobile-dock-card" aria-hidden="true">
+		<div class="mobile-dock__card-inner" tabindex="-1">
+			<div class="mobile-dock__views">
+				<section class="mobile-dock__view is-active" data-dock-view="menu" data-title={i18n(I18nKey.menu)}>
+					<nav class="mobile-dock__menu" aria-label={i18n(I18nKey.menu)}>
+						{navLinks.map((link, index) =>
+							link.children && link.children.length > 0 ? (
+								<div class="mobile-dock__accordion" data-dock-accordion>
+									<button
+										class="mobile-dock__menu-row mobile-dock__accordion-trigger"
+										type="button"
+										aria-expanded="false"
+										aria-controls={`mobile-dock-submenu-${index}`}
+									>
+										<span class="mobile-dock__menu-row-main">
+											{link.icon && <Icon name={link.icon} is:inline />}
+											<span>{link.name}</span>
+										</span>
+										<Icon name="material-symbols:keyboard-arrow-down-rounded" is:inline class="mobile-dock__accordion-arrow" />
+									</button>
+									<div
+										class="mobile-dock__submenu"
+										id={`mobile-dock-submenu-${index}`}
+										aria-hidden="true"
+										inert
+									>
+										<div class="mobile-dock__submenu-inner">
+											{link.children.map((child) =>
+												child.action ? (
+													<button class="mobile-dock__submenu-row" type="button" data-action={child.action}>
+														{child.icon && <Icon name={child.icon} is:inline />}
+														<span>{child.name}</span>
+													</button>
+												) : (
+													<a
+														href={child.external ? child.url : url(child.url)}
+														class="mobile-dock__submenu-row"
+														target={child.external ? "_blank" : undefined}
+														rel={child.external ? "noopener noreferrer" : undefined}
+														data-dock-navigation
+													>
+														{child.icon && <Icon name={child.icon} is:inline />}
+														<span>{child.name}</span>
+														{child.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="mobile-dock__external-icon" />}
+													</a>
+												))}
+										</div>
+									</div>
+							</div>
+							) : link.action ? (
+								<button class="mobile-dock__menu-row" type="button" data-action={link.action}>
+									<span class="mobile-dock__menu-row-main">
+										{link.icon && <Icon name={link.icon} is:inline />}
+										<span>{link.name}</span>
+									</span>
+								</button>
+							) : (
+								<a
+									href={link.external ? link.url : url(link.url)}
+									class="mobile-dock__menu-row"
+									target={link.external ? "_blank" : undefined}
+									rel={link.external ? "noopener noreferrer" : undefined}
+									data-dock-navigation
+								>
+									<span class="mobile-dock__menu-row-main">
+										{link.icon && <Icon name={link.icon} is:inline />}
+										<span>{link.name}</span>
+									</span>
+									{link.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="mobile-dock__external-icon" />}
+								</a>
+							)
+						)}
+					</nav>
+				</section>
+
+				{showMusic && (
+					<section class="mobile-dock__view" data-dock-view="music" data-title={i18n(I18nKey.music)} hidden>
+					<div class="mobile-dock__playlist" id="mobile-dock-playlist" role="listbox" aria-label={i18n(I18nKey.musicPlaylist)}>
+							<p class="mobile-dock__empty" id="mobile-dock-music-empty">{i18n(I18nKey.musicNoPlaying)}</p>
+						</div>
+						<div class="mobile-dock__transport">
+							<div class="mobile-dock__progress-row">
+								<span id="mobile-dock-current-time">0:00</span>
+								<input
+									class="mobile-dock__progress"
+									id="mobile-dock-progress"
+									type="range"
+									min="0"
+									max="100"
+									step="0.1"
+									value="0"
+									aria-label={i18n(I18nKey.musicProgress)}
+								/>
+								<span id="mobile-dock-duration">0:00</span>
+							</div>
+							<div class="mobile-dock__transport-buttons">
+								<button type="button" id="mobile-dock-mode-btn" aria-label={i18n(I18nKey.playModeList)} aria-pressed="false">
+									<Icon name="material-symbols:repeat-rounded" is:inline class="mobile-dock__mode-list-icon" />
+									<Icon name="material-symbols:repeat-one-rounded" is:inline class="mobile-dock__mode-single-icon is-hidden" />
+									<Icon name="material-symbols:shuffle-rounded" is:inline class="mobile-dock__mode-shuffle-icon is-hidden" />
+								</button>
+								<button type="button" id="mobile-dock-prev-btn" aria-label={i18n(I18nKey.musicPrev)}>
+									<Icon name="material-symbols:skip-previous-rounded" is:inline />
+								</button>
+								<button class="mobile-dock__play-button" type="button" id="mobile-dock-play-btn" aria-label={i18n(I18nKey.musicPlay)}>
+									<Icon name="material-symbols:play-arrow-rounded" is:inline class="mobile-dock__play-icon" />
+									<Icon name="material-symbols:pause-rounded" is:inline class="mobile-dock__pause-icon is-hidden" />
+								</button>
+								<button type="button" id="mobile-dock-next-btn" aria-label={i18n(I18nKey.musicNext)}>
+									<Icon name="material-symbols:skip-next-rounded" is:inline />
+								</button>
+								<button type="button" id="mobile-dock-mute-btn" aria-label={i18n(I18nKey.musicVolume)} aria-pressed="false">
+									<Icon name="material-symbols:volume-up-rounded" is:inline class="mobile-dock__volume-up-icon" />
+									<Icon name="material-symbols:volume-off-rounded" is:inline class="mobile-dock__volume-off-icon is-hidden" />
+								</button>
+							</div>
+						</div>
+					</section>
+				)}
+
+				{showAnnouncement && (
+					<section id="mobile-dock-announcement-view" class="mobile-dock__view" data-dock-view="announcement" data-title={announcementConfig.title || i18n(I18nKey.announcement)} hidden>
+						<div class="mobile-dock__announcement-list">
+							{announcements.map((item) => {
+								const external = !!item.link && /^https?:\/\//.test(item.link);
+								return (
+									<details class="mobile-dock__announcement">
+										<summary>
+											<span class="mobile-dock__announcement-main">
+												<span class="mobile-dock__announcement-tag">{item.tag}</span>
+												<strong>{item.title}</strong>
+											</span>
+											<span class="mobile-dock__announcement-side">
+												<time>{item.time}</time>
+												<Icon name="material-symbols:keyboard-arrow-down-rounded" is:inline class="mobile-dock__announcement-arrow" />
+											</span>
+										</summary>
+										<div class="mobile-dock__announcement-content">
+											<p>{item.content}</p>
+											{item.link && (
+												<a
+													href={external ? item.link : url(item.link)}
+													target={external ? "_blank" : undefined}
+													rel={external ? "noopener noreferrer" : undefined}
+													data-dock-navigation
+												>
+													{i18n(I18nKey.viewDetails)}
+													<Icon name="material-symbols:arrow-forward-rounded" is:inline />
+												</a>
+											)}
+										</div>
+									</details>
+								);
+							})}
+						</div>
+					</section>
+				)}
+
+				<section class="mobile-dock__view" data-dock-view="tags" data-title={i18n(I18nKey.tags)} hidden>
+					<div class="mobile-dock__tag-list">
+						{tags.map((tag) => (
+							<a href={tag.url} class="mobile-dock__tag-row" data-dock-navigation>
+								<span># {tag.name.trim()}</span>
+								<strong>{tag.count}</strong>
+							</a>
+						))}
+					</div>
+				</section>
+
+				<section class="mobile-dock__view" data-dock-view="toc" data-title={i18n(I18nKey.tableOfContents)} hidden>
+					<div class="mobile-dock__toc toc-scroll-container">
+						<div id="mobile-dock-toc-content" class="toc-content"></div>
+					</div>
+				</section>
+			</div>
+
+			<nav class="mobile-dock__toolbar" aria-label={i18n(I18nKey.tools)}>
+				<button type="button" id="mobile-dock-search-btn" aria-label={i18n(I18nKey.search)}>
+					<Icon name="material-symbols:search-rounded" is:inline />
+					<span>{i18n(I18nKey.search)}</span>
+				</button>
+				<button type="button" id="mobile-dock-theme-btn" aria-label={i18n(I18nKey.theme)}>
+					<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="mobile-dock__theme-light" />
+					<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="mobile-dock__theme-dark is-hidden" />
+					<span>{i18n(I18nKey.theme)}</span>
+				</button>
+				{showMusic && (
+					<button type="button" data-view-target="music" aria-label={i18n(I18nKey.music)}>
+						<Icon name="material-symbols:music-note-rounded" is:inline />
+						<span>{i18n(I18nKey.music)}</span>
+					</button>
+				)}
+				{showAnnouncement && (
+					<button
+						class={isHomePath ? undefined : "is-hidden"}
+						id="mobile-dock-announcement-btn"
+						type="button"
+						data-view-target="announcement"
+						aria-label={i18n(I18nKey.announcement)}
+						aria-hidden={isHomePath ? "false" : "true"}
+						tabindex={isHomePath ? 0 : -1}
+					>
+						<Icon name="material-symbols:notifications-outline-rounded" is:inline />
+						<span>{i18n(I18nKey.announcement)}</span>
+					</button>
+				)}
+				<button class="is-hidden" type="button" id="mobile-dock-toc-btn" data-view-target="toc" aria-label={i18n(I18nKey.tableOfContents)}>
+					<Icon name="material-symbols:format-list-bulleted" is:inline />
+					<span>{i18n(I18nKey.tableOfContents)}</span>
+				</button>
+				<button class="is-hidden" type="button" id="mobile-dock-comment-btn" aria-label={i18n(I18nKey.comments)}>
+					<Icon name="mingcute:comment-line" is:inline />
+					<span>{i18n(I18nKey.comments)}</span>
+				</button>
+				<button class="is-hidden" type="button" id="mobile-dock-top-btn" aria-label={i18n(I18nKey.backToTop)}>
+					<Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline />
+					<span>{i18n(I18nKey.top)}</span>
+				</button>
+				{showSpine && (
+					<button type="button" id="mobile-dock-spine-btn" aria-label={i18n(I18nKey.spineModel)}>
+						<Icon name="material-symbols:image-outline" is:inline />
+						<span>{i18n(I18nKey.spineModel)}</span>
+					</button>
+				)}
+			</nav>
+		</div>
+	</div>
+</section>
+
+<script>
+	import I18nKey from "@/i18n/i18nKey";
+	import { i18n } from "@/i18n/translation";
+	import { NAVBAR_PROFILE_TOGGLE_EVENT } from "@/utils/navbar-profile-controller";
+	import { requestSearchModalToggle } from "@/utils/search-modal-controller";
+	import { getStoredTheme, setTheme } from "@/utils/setting-utils";
+	import { onNavigation } from "@/utils/swup-lifecycle";
+
+	type DockShape = "pill" | "bubble" | "card";
+	type DockView = "menu" | "music" | "announcement" | "tags" | "toc";
+	type MusicState = ReturnType<
+		NonNullable<Window["__fireflyMusic"]>["getState"]
+	>;
+	type RuntimeDock = HTMLElement & {
+		__mobileDockAbortController?: AbortController;
+		__mobileDockCleanup?: () => void;
+	};
+
+	(function initMobileDock() {
+		const dock = document.getElementById("mobile-dock") as RuntimeDock;
+		const overlay = document.getElementById("mobile-dock-overlay") as HTMLElement;
+		const card = document.getElementById("mobile-dock-card") as HTMLElement;
+		const cardInner = card?.querySelector<HTMLElement>(".mobile-dock__card-inner") as HTMLElement;
+		const contextButton = document.getElementById("mobile-dock-context-btn") as HTMLButtonElement;
+		const menuButton = document.getElementById("mobile-dock-menu-btn") as HTMLButtonElement;
+		const viewTitle = document.getElementById("mobile-dock-view-title") as HTMLElement;
+		const lyricViewport = document.getElementById("mobile-dock-lyric-viewport") as HTMLElement;
+		const lyricText = document.getElementById("mobile-dock-lyric-text") as HTMLElement;
+		if (!dock || !overlay || !card || !cardInner || !contextButton || !menuButton || !viewTitle || !lyricViewport || !lyricText) return;
+
+		dock.__mobileDockCleanup?.();
+		dock.__mobileDockAbortController?.abort();
+		const abortController = new AbortController();
+		dock.__mobileDockAbortController = abortController;
+		const { signal } = abortController;
+
+		const siteTitle = document.querySelector<HTMLElement>(".mobile-dock__site-title")?.textContent?.trim() || document.title;
+		const views = Array.from(dock.querySelectorAll<HTMLElement>("[data-dock-view]"));
+		const viewButtons = Array.from(dock.querySelectorAll<HTMLButtonElement>("[data-view-target]"));
+		const playlist = document.getElementById("mobile-dock-playlist");
+		const musicEmpty = document.getElementById("mobile-dock-music-empty");
+		const progress = document.getElementById("mobile-dock-progress") as HTMLInputElement | null;
+		const currentTime = document.getElementById("mobile-dock-current-time");
+		const duration = document.getElementById("mobile-dock-duration");
+		const playButton = document.getElementById("mobile-dock-play-btn") as HTMLButtonElement | null;
+		const modeButton = document.getElementById("mobile-dock-mode-btn") as HTMLButtonElement | null;
+		const muteButton = document.getElementById("mobile-dock-mute-btn") as HTMLButtonElement | null;
+		const playIcon = playButton?.querySelector<HTMLElement>(".mobile-dock__play-icon");
+		const pauseIcon = playButton?.querySelector<HTMLElement>(".mobile-dock__pause-icon");
+		const modeListIcon = modeButton?.querySelector<HTMLElement>(".mobile-dock__mode-list-icon");
+		const modeSingleIcon = modeButton?.querySelector<HTMLElement>(".mobile-dock__mode-single-icon");
+		const modeShuffleIcon = modeButton?.querySelector<HTMLElement>(".mobile-dock__mode-shuffle-icon");
+		const volumeUpIcon = muteButton?.querySelector<HTMLElement>(".mobile-dock__volume-up-icon");
+		const volumeOffIcon = muteButton?.querySelector<HTMLElement>(".mobile-dock__volume-off-icon");
+		const tocButton = document.getElementById("mobile-dock-toc-btn");
+		const announcementButton = document.getElementById("mobile-dock-announcement-btn");
+		const commentButton = document.getElementById("mobile-dock-comment-btn");
+		const topButton = document.getElementById("mobile-dock-top-btn");
+
+		let shape: DockShape = "pill";
+		let activeView: DockView = "menu";
+		let musicState: MusicState | null = null;
+		let displayedLyric = "";
+		let playlistSignature = "";
+		let lastFocusedPlaylistIndex: number | null = null;
+		let lastScrollY = window.scrollY;
+		let idleExpandTimer: number | null = null;
+		let previousFocus: HTMLElement | null = null;
+		let previousBodyOverflow = "";
+		let keyboardOpen = false;
+		let mobileTOCManager: { cleanup: () => void } | null = null;
+		let scrollFrame: number | null = null;
+		let closingTimer: number | null = null;
+
+		function prefersReducedMotion() {
+			return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		}
+
+		function clearMotionTimers() {
+			if (closingTimer !== null) window.clearTimeout(closingTimer);
+			closingTimer = null;
+			dock.classList.remove("is-closing");
+			overlay.classList.remove("is-closing");
+		}
+
+		function setShape(nextShape: DockShape) {
+			if (shape === nextShape) return;
+			const wasCard = shape === "card";
+			shape = nextShape;
+			dock.dataset.shape = shape;
+			const isCard = shape === "card";
+			menuButton.setAttribute("aria-expanded", String(isCard));
+			menuButton.setAttribute("aria-label", isCard ? i18n(I18nKey.close) : i18n(I18nKey.menu));
+			card.setAttribute("aria-hidden", String(!isCard));
+			overlay.classList.toggle("is-open", isCard);
+			if (!isCard) {
+				overlay.classList.remove("is-closing");
+			}
+			overlay.setAttribute("aria-hidden", String(!isCard));
+
+			if (isCard) {
+				previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : menuButton;
+				previousBodyOverflow = document.body.style.overflow;
+				document.body.style.overflow = "hidden";
+				requestAnimationFrame(() => cardInner.focus({ preventScroll: true }));
+			} else if (wasCard) {
+				document.body.style.overflow = previousBodyOverflow;
+				previousFocus?.focus({ preventScroll: true });
+				setView("menu");
+			}
+			if (nextShape === "pill") scheduleLyricMarquee();
+		}
+
+		function openCard(view: DockView = "menu") {
+			setView(view);
+			if (shape === "card") {
+				clearMotionTimers();
+				return;
+			}
+			setShape("card");
+		}
+
+		function closeCard() {
+			if (shape !== "card" || dock.classList.contains("is-closing")) return;
+			if (prefersReducedMotion()) {
+				setShape("pill");
+				return;
+			}
+			dock.classList.add("is-closing");
+			overlay.classList.add("is-closing");
+			closingTimer = window.setTimeout(() => {
+				closingTimer = null;
+				setShape("pill");
+				dock.classList.remove("is-closing");
+			}, 500);
+		}
+
+		function setView(nextView: DockView) {
+			const target = views.find((view) => view.dataset.dockView === nextView);
+			if (!target) return;
+			activeView = nextView;
+			dock.dataset.view = activeView;
+			views.forEach((view) => {
+				const active = view === target;
+				view.hidden = !active;
+				view.classList.toggle("is-active", active);
+			});
+			viewButtons.forEach((button) => {
+				const active = button.dataset.viewTarget === activeView;
+				button.classList.toggle("is-active", active);
+				button.setAttribute("aria-pressed", String(active));
+			});
+			viewTitle.textContent = (nextView === "music" && musicState?.track?.name) || target.dataset.title || i18n(I18nKey.menu);
+			dock.classList.toggle("is-child-view", activeView !== "menu");
+			contextButton.setAttribute("aria-label", activeView === "menu" ? siteTitle : i18n(I18nKey.menu));
+
+			if (activeView === "music") void ensureMusicReady();
+			if (activeView === "toc") void initializeTOC();
+			target.scrollTop = 0;
+		}
+
+		function closeOpenAccordion(except?: HTMLElement) {
+			dock.querySelectorAll<HTMLElement>("[data-dock-accordion]").forEach((accordion) => {
+				if (accordion === except) return;
+				accordion.classList.remove("is-open");
+				const trigger = accordion.querySelector<HTMLButtonElement>(".mobile-dock__accordion-trigger");
+				const panel = accordion.querySelector<HTMLElement>(".mobile-dock__submenu");
+				trigger?.setAttribute("aria-expanded", "false");
+				if (panel) {
+					panel.setAttribute("aria-hidden", "true");
+					panel.inert = true;
+				}
+			});
+		}
+
+		dock.querySelectorAll<HTMLElement>("[data-dock-accordion]").forEach((accordion) => {
+			const trigger = accordion.querySelector<HTMLButtonElement>(".mobile-dock__accordion-trigger");
+			const panel = accordion.querySelector<HTMLElement>(".mobile-dock__submenu");
+			trigger?.addEventListener("click", () => {
+				const willOpen = !accordion.classList.contains("is-open");
+				closeOpenAccordion(accordion);
+				accordion.classList.toggle("is-open", willOpen);
+				trigger.setAttribute("aria-expanded", String(willOpen));
+				if (panel) {
+					panel.setAttribute("aria-hidden", String(!willOpen));
+					panel.inert = !willOpen;
+				}
+			}, { signal });
+		});
+
+		function scheduleLyricMarquee() {
+			requestAnimationFrame(() => {
+				lyricText.classList.remove("is-marquee");
+				lyricText.style.removeProperty("--mobile-dock-lyric-offset");
+				lyricText.style.removeProperty("--mobile-dock-lyric-duration");
+				if (!dock.classList.contains("has-playing-context") || shape !== "pill") return;
+				const overflow = lyricText.scrollWidth - lyricViewport.clientWidth;
+				if (overflow <= 2) return;
+				lyricText.style.setProperty("--mobile-dock-lyric-offset", `${-Math.ceil(overflow)}px`);
+				lyricText.style.setProperty("--mobile-dock-lyric-duration", `${Math.max(5, overflow / 28 + 3).toFixed(2)}s`);
+				lyricText.classList.add("is-marquee");
+			});
+		}
+
+		function updateContext() {
+			const track = musicState?.track;
+			const isPlaying = !!musicState?.isPlaying && !!track;
+			dock.classList.toggle("has-playing-context", isPlaying);
+			if (!isPlaying || !track) {
+				if (displayedLyric) {
+					displayedLyric = "";
+					lyricText.textContent = "";
+					scheduleLyricMarquee();
+				}
+				contextButton.setAttribute("aria-label", siteTitle);
+				return;
+			}
+
+			let content = track.name;
+			if (musicState?.lyricsStatus === "loading") {
+				content = i18n(I18nKey.musicLoadingLyrics);
+			} else if (
+				musicState?.lyricsStatus === "loaded" &&
+				musicState.currentLrcIndex >= 0 &&
+				musicState.lyrics[musicState.currentLrcIndex]?.text
+			) {
+				content = musicState.lyrics[musicState.currentLrcIndex].text;
+			}
+			if (content !== displayedLyric) {
+				displayedLyric = content;
+				lyricText.textContent = content;
+				scheduleLyricMarquee();
+			}
+			contextButton.setAttribute("aria-label", `${track.name}: ${content}`);
+		}
+
+		function updateMusicViewTitle() {
+			if (activeView !== "music") return;
+			viewTitle.textContent = musicState?.track?.name || i18n(I18nKey.music);
+		}
+
+		function updateMusicControls() {
+			if (!progress || !currentTime || !duration || !playButton || !playIcon || !pauseIcon) return;
+			const value = musicState?.progress || 0;
+			progress.value = String(value);
+			progress.style.setProperty("--mobile-dock-progress", `${value}%`);
+			currentTime.textContent = musicState?.currentTimeStr || "0:00";
+			duration.textContent = musicState?.durationStr || "0:00";
+			const isPlaying = !!musicState?.isPlaying;
+			playIcon.classList.toggle("is-hidden", isPlaying);
+			pauseIcon.classList.toggle("is-hidden", !isPlaying);
+			playButton.setAttribute("aria-label", isPlaying ? i18n(I18nKey.musicPause) : i18n(I18nKey.musicPlay));
+
+			const playMode = musicState?.playMode || 0;
+			const modeLabel = [I18nKey.playModeList, I18nKey.playModeSingle, I18nKey.playModeShuffle][playMode] || I18nKey.playModeList;
+			modeListIcon?.classList.toggle("is-hidden", playMode !== 0);
+			modeSingleIcon?.classList.toggle("is-hidden", playMode !== 1);
+			modeShuffleIcon?.classList.toggle("is-hidden", playMode !== 2);
+			modeButton?.classList.toggle("is-active", playMode !== 0);
+			modeButton?.setAttribute("aria-label", i18n(modeLabel));
+			modeButton?.setAttribute("aria-pressed", String(playMode !== 0));
+
+			const isMuted = !!musicState?.isMuted || !musicState?.volume;
+			volumeUpIcon?.classList.toggle("is-hidden", isMuted);
+			volumeOffIcon?.classList.toggle("is-hidden", !isMuted);
+			muteButton?.classList.toggle("is-active", isMuted);
+			muteButton?.setAttribute("aria-label", `${i18n(I18nKey.musicVolume)}: ${isMuted ? "0%" : `${Math.round((musicState?.volume || 0) * 100)}%`}`);
+			muteButton?.setAttribute("aria-pressed", String(isMuted));
+		}
+
+		function updatePlaylistState() {
+			if (!playlist || !musicState) return;
+			playlist.querySelectorAll<HTMLElement>(".mobile-dock__playlist-item").forEach((item) => {
+				const index = Number.parseInt(item.dataset.index || "-1", 10);
+				const active = index === musicState?.currentIndex;
+				item.classList.toggle("is-active", active);
+				item.classList.toggle("is-playing", active && !!musicState?.isPlaying);
+				item.setAttribute("aria-selected", String(active));
+				if (active) item.setAttribute("aria-current", "true");
+				else item.removeAttribute("aria-current");
+			});
+			const activeItem = playlist.querySelector<HTMLElement>(".mobile-dock__playlist-item.is-active");
+			if (activeItem && activeView === "music" && lastFocusedPlaylistIndex !== musicState.currentIndex) {
+				activeItem.scrollIntoView({ block: "nearest" });
+				lastFocusedPlaylistIndex = musicState.currentIndex;
+			}
+		}
+
+		function renderPlaylist() {
+			if (!playlist || !musicEmpty || !musicState) return;
+			const signature = musicState.playlist.map((track) => `${track.name}\u0000${track.artist}\u0000${track.url}`).join("\u0001");
+			if (signature === playlistSignature) {
+				updatePlaylistState();
+				return;
+			}
+			playlistSignature = signature;
+			lastFocusedPlaylistIndex = null;
+			playlist.replaceChildren();
+
+			if (musicState.playlist.length === 0) {
+				musicEmpty.textContent = musicState.error || i18n(I18nKey.musicNoSongs);
+				playlist.appendChild(musicEmpty);
+				return;
+			}
+
+			musicState.playlist.forEach((track, index) => {
+				const item = document.createElement("button");
+				item.type = "button";
+				item.className = "mobile-dock__playlist-item";
+				item.dataset.index = String(index);
+				item.setAttribute("role", "option");
+
+				const cover = document.createElement("span");
+				cover.className = "mobile-dock__playlist-cover";
+				if (track.pic) {
+					const image = document.createElement("img");
+					image.src = track.pic;
+					image.alt = "";
+					image.loading = "lazy";
+					image.addEventListener("error", () => image.remove(), { once: true });
+					cover.appendChild(image);
+				}
+
+				const meta = document.createElement("span");
+				meta.className = "mobile-dock__playlist-meta";
+				const name = document.createElement("strong");
+				name.textContent = track.name;
+				const artist = document.createElement("span");
+				artist.textContent = track.artist;
+				meta.appendChild(name);
+				meta.appendChild(artist);
+
+				const equalizer = document.createElement("span");
+				equalizer.className = "mobile-dock__playlist-eq";
+				equalizer.setAttribute("aria-hidden", "true");
+				equalizer.appendChild(document.createElement("i"));
+				equalizer.appendChild(document.createElement("i"));
+				equalizer.appendChild(document.createElement("i"));
+
+				item.appendChild(cover);
+				item.appendChild(meta);
+				item.appendChild(equalizer);
+				item.addEventListener("click", () => window.__fireflyMusic?.playTrackByIndex(index), { signal });
+				playlist.appendChild(item);
+			});
+			updatePlaylistState();
+		}
+
+		function syncMusicState() {
+			const manager = window.__fireflyMusic;
+			if (!manager) return;
+			musicState = manager.getState();
+		updateContext();
+		updateMusicViewTitle();
+		updateMusicControls();
+		renderPlaylist();
+		}
+
+		async function ensureMusicReady() {
+			const manager = window.__fireflyMusic;
+			if (!manager) return;
+			const state = manager.getState();
+			if (!state.initialized) {
+				if (musicEmpty) musicEmpty.textContent = i18n(I18nKey.musicNoPlaying);
+				await manager.init();
+			}
+			syncMusicState();
+		}
+
+		async function initializeTOC() {
+			mobileTOCManager?.cleanup();
+			try {
+				const { TOCManager } = await import("@/utils/toc-utils");
+				const manager = new TOCManager({
+					contentId: "mobile-dock-toc-content",
+					indicatorId: "mobile-dock-toc-indicator",
+					maxLevel: 3,
+					scrollOffset: 80,
+				});
+				manager.init();
+				mobileTOCManager = manager;
+			} catch {
+				const tocContent = document.getElementById("mobile-dock-toc-content");
+				if (tocContent) tocContent.textContent = i18n(I18nKey.tocEmpty);
+			}
+		}
+
+		function updateThemeIcon() {
+			const isDark = document.documentElement.classList.contains("dark");
+			dock.querySelector<HTMLElement>(".mobile-dock__theme-light")?.classList.toggle("is-hidden", isDark);
+			dock.querySelector<HTMLElement>(".mobile-dock__theme-dark")?.classList.toggle("is-hidden", !isDark);
+		}
+
+		function updatePathDependent() {
+			const pathname = window.location.pathname;
+			const isHome = pathname === "/" || pathname === "";
+			const isPost = /\/posts?\//.test(pathname);
+			const isFriends = /^\/friends\/?$/.test(pathname);
+			const hasComment = !!document.getElementById("post-comments");
+			announcementButton?.classList.toggle("is-hidden", !isHome);
+			announcementButton?.setAttribute("aria-hidden", String(!isHome));
+			announcementButton?.setAttribute("tabindex", isHome ? "0" : "-1");
+			tocButton?.classList.toggle("is-hidden", !isPost);
+			commentButton?.classList.toggle("is-hidden", !(isPost || isFriends) || !hasComment);
+			topButton?.classList.toggle("is-hidden", window.scrollY <= 200);
+			if (!isHome && activeView === "announcement") setView("menu");
+			if (!isPost && activeView === "toc") setView("menu");
+		}
+
+		function scheduleIdleExpand() {
+			if (idleExpandTimer !== null) window.clearTimeout(idleExpandTimer);
+			idleExpandTimer = window.setTimeout(() => {
+				if (!keyboardOpen && shape === "bubble") setShape("pill");
+			}, 1800);
+		}
+
+		function onScroll() {
+			if (scrollFrame !== null) return;
+			scrollFrame = requestAnimationFrame(() => {
+				scrollFrame = null;
+				const y = window.scrollY;
+				const delta = y - lastScrollY;
+				lastScrollY = y;
+				topButton?.classList.toggle("is-hidden", y <= 200);
+				if (keyboardOpen || shape === "card") return;
+				if (delta >= 8 && y > 80) setShape("bubble");
+				else if (delta <= -8) setShape("pill");
+				scheduleIdleExpand();
+			});
+		}
+
+		function setKeyboardOpen(open: boolean) {
+			keyboardOpen = open;
+			dock.classList.toggle("is-keyboard-open", open);
+			if (open && shape === "card") closeCard();
+		}
+
+		menuButton.addEventListener("click", () => {
+			if (shape === "bubble") {
+				setShape("pill");
+				return;
+			}
+			if (dock.classList.contains("is-closing")) openCard("menu");
+			else if (shape === "card") closeCard();
+			else openCard("menu");
+		}, { signal });
+
+	contextButton.addEventListener("click", () => {
+		if (shape === "bubble") {
+			setShape("pill");
+			return;
+		}
+		if (shape === "card") {
+			if (activeView !== "menu") setView("menu");
+			return;
+		}
+		// 播放中站名位是歌词，点击进音乐视图；否则打开导航资料卡面板
+		// （回首页交给左侧 logo 链接，PC 端同款面板由 profile 控制器接管）
+		if (musicState?.isPlaying && musicState.track) openCard("music");
+		else window.dispatchEvent(new CustomEvent(NAVBAR_PROFILE_TOGGLE_EVENT));
+	}, { signal });
+
+	overlay.addEventListener("click", closeCard, { signal });
+		viewButtons.forEach((button) => {
+			button.addEventListener("click", () => setView(button.dataset.viewTarget as DockView), { signal });
+		});
+
+		dock.addEventListener("click", (event) => {
+			const target = event.target as HTMLElement;
+			const actionButton = target.closest<HTMLElement>("[data-action]");
+			const action = actionButton?.dataset.action;
+			if (action) {
+				window.dispatchEvent(new CustomEvent(action));
+				closeCard();
+			}
+			if (target.closest("[data-dock-navigation]")) {
+				closeCard();
+			}
+			if (target.closest("#mobile-dock-toc-content a")) window.setTimeout(closeCard, 0);
+		}, { signal });
+
+		document.getElementById("mobile-dock-search-btn")?.addEventListener("click", () => {
+			closeCard();
+			requestSearchModalToggle();
+		}, { signal });
+
+		document.getElementById("mobile-dock-theme-btn")?.addEventListener("click", () => {
+			const current = getStoredTheme();
+			const resolved = current === "system"
+				? document.documentElement.classList.contains("dark") ? "dark" : "light"
+				: current;
+			setTheme(resolved === "light" ? "dark" : "light");
+			updateThemeIcon();
+		}, { signal });
+
+		document.getElementById("mobile-dock-comment-btn")?.addEventListener("click", () => {
+			closeCard();
+			document.getElementById("post-comments")?.scrollIntoView({ behavior: "smooth", block: "start" });
+		}, { signal });
+
+		document.getElementById("mobile-dock-top-btn")?.addEventListener("click", () => {
+			closeCard();
+			window.scroll({ top: 0, behavior: "smooth" });
+		}, { signal });
+
+		document.getElementById("mobile-dock-spine-btn")?.addEventListener("click", (event) => {
+			const target = document.getElementById("spine-model-container");
+			if (!target) return;
+			const hidden = target.style.display === "none";
+			target.style.display = hidden ? "" : "none";
+			localStorage.setItem("spine-hidden", String(!hidden));
+			(event.currentTarget as HTMLElement).setAttribute("aria-pressed", String(hidden));
+			closeCard();
+		}, { signal });
+
+		document.getElementById("mobile-dock-prev-btn")?.addEventListener("click", () => window.__fireflyMusic?.playPrev(), { signal });
+		modeButton?.addEventListener("click", () => window.__fireflyMusic?.cyclePlayMode(), { signal });
+		playButton?.addEventListener("click", () => window.__fireflyMusic?.togglePlay(), { signal });
+		document.getElementById("mobile-dock-next-btn")?.addEventListener("click", () => window.__fireflyMusic?.playNext(), { signal });
+		muteButton?.addEventListener("click", () => window.__fireflyMusic?.toggleMute(), { signal });
+		progress?.addEventListener("input", () => {
+			const value = Number.parseFloat(progress.value);
+			progress.style.setProperty("--mobile-dock-progress", `${value}%`);
+			window.__fireflyMusic?.seek(value / 100);
+		}, { signal });
+
+		lyricViewport.addEventListener("touchstart", () => lyricText.classList.add("is-paused"), { passive: true, signal });
+		lyricViewport.addEventListener("touchend", () => lyricText.classList.remove("is-paused"), { passive: true, signal });
+
+		const musicEvents = ["fm:init", "fm:track", "fm:play-state", "fm:time", "fm:mode", "fm:volume", "fm:lyrics", "fm:lrc-index", "fm:error"];
+		musicEvents.forEach((eventName) => window.addEventListener(eventName, syncMusicState, { signal }));
+		window.addEventListener("theme-change", updateThemeIcon, { signal });
+		window.addEventListener("resize", scheduleLyricMarquee, { passive: true, signal });
+		window.addEventListener("scroll", onScroll, { passive: true, signal });
+
+		document.addEventListener("focusin", (event) => {
+			const target = event.target;
+			if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) setKeyboardOpen(true);
+		}, { signal });
+		document.addEventListener("focusout", () => requestAnimationFrame(() => {
+			const active = document.activeElement;
+			setKeyboardOpen(active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement);
+		}), { signal });
+
+		document.addEventListener("keydown", (event) => {
+			if (shape !== "card") return;
+			if (event.key === "Escape") {
+				event.preventDefault();
+				closeCard();
+				return;
+			}
+			if (event.key !== "Tab") return;
+			const focusable = Array.from(dock.querySelectorAll<HTMLElement>(
+				'a[href]:not([hidden]), button:not([disabled]):not(.is-hidden), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+			)).filter((element) => element.offsetParent !== null);
+			if (focusable.length === 0) return;
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			if (event.shiftKey && document.activeElement === first) {
+				event.preventDefault();
+				last.focus();
+			} else if (!event.shiftKey && document.activeElement === last) {
+				event.preventDefault();
+				first.focus();
+			}
+		}, { signal });
+
+		// 只在导航后收起面板并同步路径相关状态；首次加载的初始态由上面两行直接调用负责
+		onNavigation(() => {
+			mobileTOCManager?.cleanup();
+			mobileTOCManager = null;
+			lastScrollY = window.scrollY;
+			setKeyboardOpen(false);
+			if (shape === "card") {
+				closeCard();
+			} else {
+				setShape("pill");
+			}
+			closeOpenAccordion();
+			updatePathDependent();
+			syncMusicState();
+		}, { signal });
+
+		dock.__mobileDockCleanup = () => {
+			if (idleExpandTimer !== null) window.clearTimeout(idleExpandTimer);
+			if (scrollFrame !== null) cancelAnimationFrame(scrollFrame);
+			clearMotionTimers();
+			mobileTOCManager?.cleanup();
+			document.body.style.overflow = previousBodyOverflow;
+		};
+
+		updateThemeIcon();
+		updatePathDependent();
+		syncMusicState();
+	})();
+</script>

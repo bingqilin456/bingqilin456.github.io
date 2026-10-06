@@ -1,0 +1,30 @@
+---
+import License from "@components/misc/License.astro";
+import { licenseConfig } from "@/config/licenseConfig";
+
+export interface Props {
+	title: string;
+	published: Date;
+	id: string;
+	author?: string;
+	sourceLink?: string;
+	licenseName?: string;
+	licenseUrl?: string;
+}
+
+const { title, published, id, author, sourceLink, licenseName, licenseUrl } =
+	Astro.props;
+---
+
+{licenseConfig.enable && (
+  <License
+    title={title}
+    id={id}
+    pubDate={published}
+    author={author ?? ""}
+    sourceLink={sourceLink ?? ""}
+    licenseName={licenseName ?? ""}
+    licenseUrl={licenseUrl ?? ""}
+    class="mb-6 rounded-xl license-container onload-animation"
+  />
+)}

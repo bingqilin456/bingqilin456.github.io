@@ -1,0 +1,40 @@
+---
+import Icon from "@components/common/Icon.astro";
+
+const socialLinks = [
+	{
+		platform: "GitHub",
+		handle: "bingqilin456",
+		note: "代码与项目",
+		href: "https://github.com/bingqilin456",
+		icon: "fa7-brands:github",
+		brand: "github",
+	},
+];
+---
+
+<section class="about-social-links" aria-label="站长社交账号">
+	{socialLinks.map((link) => (
+		<a
+			class={`about-social-links__item about-social-links__item--${link.brand} no-styling`}
+			href={link.href}
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label={`${link.platform}：${link.handle}`}
+		>
+			<span class="about-social-links__icon" aria-hidden="true">
+				<Icon name={link.icon} />
+			</span>
+			<span class="about-social-links__content">
+				<span class="about-social-links__platform">{link.platform}</span>
+				<span class="about-social-links__handle">{link.handle}</span>
+				<span class="about-social-links__note">{link.note}</span>
+			</span>
+			<Icon
+				name="material-symbols:arrow-outward-rounded"
+				class="about-social-links__arrow"
+				aria-hidden="true"
+			/>
+		</a>
+	))}
+</section>

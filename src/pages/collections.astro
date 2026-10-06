@@ -1,0 +1,153 @@
+---
+import Icon from "@components/common/Icon.astro";
+import PageTitle from "@/components/common/PageTitle.astro";
+import { collectionsApiConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import "@/styles/collections.css";
+
+if (!siteConfig.pages.collections) {
+	return Astro.redirect("/404/");
+}
+
+const title = collectionsApiConfig.title || i18n(I18nKey.collections);
+const description =
+	collectionsApiConfig.description || i18n(I18nKey.collectionsMotto);
+
+// 按 category 分组，过滤掉禁用的项和空分组
+const enabledGroups = collectionsApiConfig.apis
+	.map((group) => ({
+		category: group.category,
+		description: group.description,
+		items: group.items.filter((api) => api.enabled),
+	}))
+	.filter((group) => group.items.length > 0);
+
+const enabledApisCount = enabledGroups.reduce(
+	(sum, group) => sum + group.items.length,
+	0,
+);
+---
+
+<MainGridLayout title={title} description={description} hasOwnH1={true}>
+
+  <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+    <div class="card-base z-10 px-9 py-6 relative w-full">
+      <!-- 页面标题 -->
+      <div class="mb-8">
+        <PageTitle
+          title={title}
+          eyebrow="Collections"
+          description={i18n(I18nKey.collectionsMotto)}
+          variant="stacked"
+        />
+      </div>
+
+      <!-- 手风琴分类列表 -->
+      {enabledApisCount > 0 ? (
+        <div class="tools-accordion-list">
+          {enabledGroups.map((group, groupIndex) => {
+            const cat = group.category;
+            const catApis = group.items;
+            return (
+              <section class="tools-accordion" data-tools-accordion data-open={groupIndex === 0 ? "true" : undefined}>
+                <button type="button" class="tools-accordion-header" aria-expanded={groupIndex === 0}>
+                  <div class="tools-accordion-title-wrap">
+                    <span class="tools-accordion-title">{cat}</span>
+                    {group.description && (
+                      <span class="tools-accordion-desc">{group.description}</span>
+                    )}
+                  </div>
+                  <Icon name="material-symbols:keyboard-arrow-down-rounded" class="tools-accordion-arrow" />
+                </button>
+                <div class="tools-accordion-body">
+                  <div class="tools-accordion-body-inner">
+                <div class="tools-card-grid">
+                  {catApis.map((api) => (
+                    <a
+                      href={api.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="tools-card group"
+                      data-category={cat}
+                    >
+                      <div class="tools-card-jump-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M7 17L17 7" />
+                          <path d="M7 7h10v10" />
+                        </svg>
+                      </div>
+                      <div class="flex items-center gap-2 mb-3">
+                        {api.icon ? (
+                          api.icon.startsWith('http') ? (
+                            <img data-src={api.icon} alt={api.name} loading="lazy" decoding="async" class="w-6 h-6 rounded object-contain shrink-0" />
+                          ) : (
+                            <Icon name={api.icon} class="text-2xl text-neutral-600 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white transition-colors duration-300 shrink-0" />
+                          )
+                        ) : (
+                          <Icon name="material-symbols:api" class="text-2xl text-neutral-600 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white transition-colors duration-300 shrink-0" />
+                        )}
+                        <h3 class="text-lg font-bold text-neutral-900 dark:text-neutral-100 group-hover:translate-x-1 transition-transform duration-300 truncate">
+                          {api.name}
+                        </h3>
+                      </div>
+                      <p class="tools-card-desc">{api.description}</p>
+                      <div class="tools-card-footer">
+                        <span class="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                          {new URL(api.url).hostname}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+                  </div>
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <div class="text-center py-16">
+          <Icon name="material-symbols:bookmark-outline" class="text-5xl text-neutral-300 dark:text-neutral-600 mb-4" />
+          <p class="text-neutral-500 dark:text-neutral-400">{i18n(I18nKey.collectionsEmpty)}</p>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <!-- 手风琴展开/收起：纯 CSS 高度过渡，JS 仅切换状态 -->
+  <!-- 图标懒加载：收起的手风琴不请求 logo，首次展开时才把 data-src 换成 src -->
+  <script is:inline>
+    (function() {
+      function activateIcons(accordion) {
+        accordion.querySelectorAll("img[data-src]").forEach(function(img) {
+          img.setAttribute("src", img.getAttribute("data-src"));
+          img.removeAttribute("data-src");
+        });
+      }
+
+      // 已展开的手风琴（默认第一组）：立即加载图标
+      // 放在 ready 守卫之前，swup 切回本页（DOM 重建）时也能重新激活
+      document.querySelectorAll("[data-tools-accordion][data-open]").forEach(activateIcons);
+
+      if (window.__collectionsAccordionReady) return;
+      window.__collectionsAccordionReady = true;
+
+      document.addEventListener("click", function(e) {
+        var header = e.target.closest(".tools-accordion-header");
+        if (!header) return;
+        var accordion = header.closest("[data-tools-accordion]");
+        if (!accordion) return;
+        var open = accordion.hasAttribute("data-open");
+        if (open) {
+          accordion.removeAttribute("data-open");
+        } else {
+          accordion.setAttribute("data-open", "");
+          activateIcons(accordion);
+        }
+        header.setAttribute("aria-expanded", open ? "false" : "true");
+      });
+    })();
+  </script>
+</MainGridLayout>

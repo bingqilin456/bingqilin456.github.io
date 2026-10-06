@@ -1,0 +1,87 @@
+---
+type Pill = {
+	label: string;
+	value: string | number;
+	tone?: "dark" | "light" | "outline" | "solid";
+};
+
+interface Props {
+	title: string;
+	detail: string;
+	icon: string;
+	eyebrow: string;
+	hoverTitle: string;
+	hoverCode: string;
+	variant?: "square" | "wide";
+	pills: Pill[];
+	class?: string;
+	statKind?: "visits" | "articles";
+	visualImage?: string;
+}
+
+const {
+	title,
+	detail,
+	eyebrow,
+	hoverTitle,
+	hoverCode,
+	variant = "square",
+	pills,
+	class: className = "",
+	statKind,
+	visualImage,
+} = Astro.props;
+---
+
+<article
+	class:list={[
+		"data-card",
+		"data-card--metric",
+		`data-card--${variant}`,
+		className,
+	]}
+	data-card-interactive
+	data-stat-kind={statKind}
+>
+	<div class="data-card__frame"></div>
+	<div class:list={["data-card__visual", visualImage && "data-card__visual--image"]} aria-hidden="true">
+		{visualImage ? (
+			<img src={visualImage} alt="" class="data-card__visual-img" data-home-motion-image loading="lazy" decoding="async" />
+		) : (
+			<svg viewBox="0 0 400 260" class="data-card__svg">
+				<path class="data-card__svg-path" d="M20 210 C 90 120, 150 260, 230 146 S 340 90, 382 38" />
+				<circle class="data-card__svg-dot data-card__svg-dot--a" cx="92" cy="78" r="34" />
+				<circle class="data-card__svg-dot data-card__svg-dot--b" cx="306" cy="172" r="52" />
+			</svg>
+		)}
+	</div>
+	<div class="data-card__content">
+		<p class="data-card__eyebrow">{eyebrow}</p>
+		<h3 class="data-card__title">{title}</h3>
+		<p class="data-card__detail">{detail}</p>
+	</div>
+	<div class="data-card__hover" aria-hidden="true">
+		<div class="data-card__hover-orb"></div>
+		<div class="data-card__hover-header">
+			<span class="data-card__hover-code">{hoverCode}</span>
+			<span class="data-card__hover-system">SYSTEM</span>
+		</div>
+		<h3 class="data-card__hover-title">{hoverTitle}<span>.</span></h3>
+	</div>
+	<div class="data-card__hover-pills" aria-hidden="true">
+		{pills.map((pill, index) => (
+			<span
+				class:list={[
+					"data-card__hover-pill",
+					`data-card__hover-pill--${pill.tone || "light"}`,
+				]}
+				style={`--pill-index:${index};`}
+			>
+				<span>{pill.label}</span>
+				<strong data-stat-value={statKind === "visits" ? pill.label : undefined}>
+					{pill.value}
+				</strong>
+			</span>
+		))}
+	</div>
+</article>

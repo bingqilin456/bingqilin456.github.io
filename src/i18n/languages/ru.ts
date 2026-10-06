@@ -1,0 +1,623 @@
+import Key from "../i18nKey";
+import type { Translation } from "../translation";
+
+export const ru: Translation = {
+	[Key.home]: "Главная",
+	[Key.about]: "О нас",
+	[Key.archive]: "Архив",
+	[Key.archiveStatsTotalPosts]: "Все публикации",
+	[Key.archiveStatsMonthPosts]: "Публикации за месяц",
+	[Key.archiveStatsWritingSpan]: "Период публикаций (дни)",
+	[Key.archiveStatsEvaluationAhead]:
+		"Темп публикаций заметно опережает план. Осталось {remaining} публикаций и {months} месяцев — около {pace} публикаций в месяц достаточно для уверенного выполнения цели.",
+	[Key.archiveStatsEvaluationOnTrack]:
+		"Темп публикаций соответствует плану. Осталось {remaining} публикаций и {months} месяцев; сохраняйте темп около {pace} публикаций в месяц.",
+	[Key.archiveStatsEvaluationBehind]:
+		"Темп публикаций пока отстаёт от плана. Для оставшихся {remaining} публикаций за {months} месяцев потребуется около {pace} публикаций в месяц.",
+	[Key.archiveStatsEvaluationComplete]:
+		"Годовая цель выполнена. Теперь можно сосредоточиться на качестве материалов, сериях и долгосрочной ценности.",
+	[Key.archiveStatsCategoryPosts]: "Публикации в категории",
+	[Key.archiveStatsTagPosts]: "Публикации с тегом",
+	[Key.archiveStatsProgress]: "Годовой прогресс",
+	[Key.archiveStatsUnavailable]: "--",
+	[Key.archiveStatsGoal]: "Годовая цель",
+	[Key.search]: "Поиск",
+	[Key.searchNoResults]: "Результаты не найдены.",
+	[Key.searchTypeSomething]: "Введите ключевое слово для поиска...",
+	[Key.searchLoading]: "Поиск...",
+	[Key.all]: "Все",
+
+	[Key.tags]: "Теги",
+	[Key.categories]: "Категории",
+	[Key.postList]: "Документы",
+	[Key.tableOfContents]: "Содержание",
+	[Key.readingProgress]: "Прогресс чтения",
+	[Key.tocEmpty]: "На этой странице нет оглавления",
+	[Key.tocAccordionAuto]: "Автосворачивание",
+	[Key.tocExpandAll]: "Развернуть все",
+	[Key.tocCollapseAll]: "Свернуть все",
+	[Key.tocMindMap]: "Интеллект-карта",
+	[Key.tocMindMapZoomIn]: "Увеличить",
+	[Key.tocMindMapZoomOut]: "Уменьшить",
+	[Key.tocMindMapReset]: "Сбросить масштаб",
+	[Key.tocMindMapFullscreen]: "Во весь экран",
+	[Key.music]: "Музыка",
+	[Key.musicNoPlaying]: "Ничего не воспроизводится",
+	[Key.musicLyrics]: "Текст песни",
+	[Key.musicVolume]: "Громкость",
+	[Key.musicPlayMode]: "Переключить режим воспроизведения",
+	[Key.musicPrev]: "Предыдущий трек",
+	[Key.musicNext]: "Следующий трек",
+	[Key.musicPlaylist]: "Плейлист",
+	[Key.musicNoLyrics]: "Текст песни отсутствует",
+	[Key.musicLoadingLyrics]: "Загрузка текста песни...",
+	[Key.musicFailedLyrics]: "Ошибка загрузки текста песни",
+	[Key.musicNoSongs]: "Нет песен",
+	[Key.musicError]: "Ошибка плеера",
+	[Key.musicPlay]: "Воспроизвести",
+	[Key.musicPause]: "Пауза",
+	[Key.musicProgress]: "Прогресс воспроизведения",
+	[Key.musicCover]: "Обложка",
+	[Key.musicNoCover]: "Нет обложки",
+
+	// Объявление
+	[Key.announcement]: "Объявление",
+	[Key.announcementClose]: "Закрыть",
+
+	[Key.comments]: "Комментарии",
+	[Key.friends]: "Ссылки",
+	[Key.friendsDescription]:
+		"Просматривайте подборку дружественных сайтов и независимых блогов, находите интересные проекты и узнавайте, как подать заявку на обмен ссылками.",
+	[Key.guestbook]: "Гостевая книга",
+	[Key.guestbookDescription]:
+		"Оставляйте в гостевой книге идеи, предложения и сообщения для общения с другими посетителями. Соблюдайте правила сообщества, чтобы сохранить доброжелательную атмосферу.",
+	[Key.commentSection]: "Комментарии",
+	[Key.commentSubtitle]: "Оставляйте комментарии и участвуйте в обсуждении",
+	[Key.commentNotConfigured]:
+		"Комментарии не настроены. Настройте систему комментариев в панели управления.",
+	[Key.commentNotOpenYet]: "Комментарии пока не открыты",
+	[Key.uncategorized]: "Без категории",
+	[Key.noTags]: "Нет тегов",
+
+	[Key.wordCount]: "слово",
+	[Key.wordsCount]: "слова",
+	[Key.minuteCount]: "минута",
+	[Key.minutesCount]: "минуты",
+	[Key.postCount]: "пост",
+	[Key.postsCount]: "постов",
+	[Key.articles]: "Статьи",
+
+	[Key.more]: "Ещё",
+	[Key.collapse]: "Свернуть",
+
+	[Key.author]: "Автор",
+	[Key.publishedAt]: "Опубликовано",
+	[Key.license]: "Лицензия",
+	[Key.bangumi]: "Бангуми",
+
+	// Фильтр и статус Бангуми текст
+	[Key.bangumiPage]: "страница",
+
+	// Категории Бангуми
+
+	// Обновление данных Бангуми
+
+	// Пагинация
+	[Key.paginationPrev]: "Предыдущая",
+	[Key.paginationNext]: "Следующая",
+	[Key.prevPost]: "Предыдущая статья",
+	[Key.nextPost]: "Следующая статья",
+	[Key.paginationPage]: "Страница",
+	[Key.paginationOf]: "из",
+	[Key.paginationStatus]: "Страница {current} из {total}",
+
+	// 404 Страница
+	[Key.notFound]: "404",
+	[Key.notFoundTitle]: "Страница не найдена",
+	[Key.notFoundDescription]:
+		"Извините, страница, которую вы посетили, не существует или была перемещена.",
+	[Key.backToHome]: "Вернуться на главную",
+
+	// RSS Страница
+	[Key.rss]: "RSS лента",
+	[Key.rssDescription]:
+		"Подпишитесь на RSS-ленту сайта, чтобы получать новые статьи в привычном ридере и следить за обновлениями без постоянного посещения сайта.",
+	[Key.rssLink]: "RSS ссылка",
+	[Key.rssCopyToReader]: "Скопировать ссылку в ваш RSS читатель",
+	[Key.rssCopyLink]: "Скопировать ссылку",
+	[Key.rssLatestPosts]: "Последние посты",
+	[Key.rssWhatIsRSS]: "Что такое RSS?",
+	[Key.rssWhatIsRSSDescription]:
+		"RSS (Really Simple Syndication) — стандартный формат для публикации часто обновляемого контента. С RSS вы можете:",
+	[Key.rssBenefit1]:
+		"Получать последний контент сайта вовремя без ручного посещения",
+	[Key.rssBenefit2]: "Управлять подписками на несколько сайтов в одном месте",
+	[Key.rssBenefit3]: "Не пропускать важные обновления и статьи",
+	[Key.rssBenefit4]: "Наслаждаться чистым чтением без рекламы",
+	[Key.rssHowToUse]:
+		"Рекомендуется использовать Feedly, Inoreader или другие RSS читатели для подписки на этот сайт.",
+	[Key.rssCopied]: "RSS ссылка скопирована в буфер обмена!",
+	[Key.rssCopyFailed]:
+		"Ошибка копирования, пожалуйста, скопируйте ссылку вручную",
+
+	// Последнее изменение
+	[Key.lastModifiedPrefix]: "Последнее обновление: ",
+	[Key.lastModifiedOutdated]: "Некоторый контент может быть устаревшим",
+	[Key.lastModifiedDaysAgo]: "{days} дней назад",
+	[Key.year]: "год",
+	[Key.month]: "месяц",
+	[Key.day]: "день",
+	[Key.hour]: "час",
+	[Key.minute]: "минута",
+	[Key.second]: "секунда",
+
+	// Статистика просмотров
+	[Key.pageViews]: "Просмотры",
+	[Key.pageViewsLoading]: "Загрузка...",
+
+	// Закреплено
+	[Key.pinned]: "Закреплено",
+
+	// Похожие статьи
+	[Key.relatedPosts]: "Похожие статьи",
+
+	// Зашифровано
+
+	// Макет списка сообщений
+
+	// Страница чаевых
+	[Key.sponsor]: "Чаевые",
+	[Key.sponsorTitle]: "Чаевые",
+	[Key.sponsorDescription]:
+		"Здесь указаны способы оставить чаевые и список поддержавших. Чаевые помогают поддерживать сайт, создавать новый контент и регулярно его обновлять.",
+	[Key.sponsorList]: "Чаевые",
+	[Key.sponsorTotal]: "Всего чаевых",
+	[Key.sponsorEmpty]: "Чаевых пока нет",
+	[Key.scanToSponsor]: "Сканировать для чаевых",
+
+	// Статистика сайта
+	[Key.siteStats]: "Статистика сайта",
+	[Key.siteStatsPostCount]: "Статьи",
+	[Key.siteStatsCategoryCount]: "Категории",
+	[Key.siteStatsTagCount]: "Теги",
+	[Key.siteStatsVisitors]: "Посетители",
+	[Key.siteStatsSource]: "Источник",
+	[Key.footerRunningDays]: "Работает {days} дней",
+	[Key.footerRunningTime]:
+		"Работает {days} д. {hours} ч. {minutes} мин. {seconds} сек.",
+	[Key.footerLastUpdate]: "Последнее обновление {days} дней назад",
+	[Key.today]: "Сегодня",
+
+	[Key.shareArticle]: "Поделиться",
+	[Key.scanToShare]: "Сканируйте, чтобы поделиться",
+	[Key.shareQQ]: "QQ",
+	[Key.shareEmail]: "Почта",
+	[Key.shareFeishu]: "Feishu",
+	[Key.shareX]: "X",
+	[Key.shareWhatsApp]: "WhatsApp",
+	[Key.copied]: "Скопировано",
+	[Key.copyLink]: "Копировать ссылку",
+	[Key.shareToQQ]: "Поделиться в QQ",
+	[Key.shareByEmail]: "Поделиться по почте",
+	[Key.shareToFeishu]: "Поделиться в Feishu",
+	[Key.shareToX]: "Поделиться в X",
+	[Key.shareToWhatsApp]: "Поделиться через WhatsApp",
+
+	// Конфигурация блоков коллапсируемого кода
+
+	// Страница галереи
+	[Key.gallery]: "Галерея",
+	[Key.galleryDescription]:
+		"Просматривайте альбомы сайта, находите изображения и работы по темам, сохраняйте интересные моменты и творческие заметки.",
+	[Key.galleryPhotos]: "фото",
+	[Key.galleryNoAlbums]: "Пока нет альбомов",
+	[Key.galleryBackToAlbums]: "Вернуться к альбомам",
+
+	// Страница коллекций API
+	[Key.collections]: "Коллекции",
+	[Key.collectionsDescription]:
+		"Изучайте каталог полезных инструментов, открытых API и ссылок на ресурсы, собранных на сайте. Быстро находите подходящие сервисы по категориям.",
+	[Key.collectionsEmpty]: "Нет сохранённых API",
+
+	// Страница статистики
+	[Key.stats]: "Статистика",
+
+	// Защита паролем
+	[Key.passwordProtected]: "Защищено паролем",
+	[Key.passwordProtectedDesc]:
+		"Эта статья защищена паролем. Пожалуйста, введите пароль для просмотра содержимого.",
+	[Key.passwordHint]: "Подсказка",
+	[Key.passwordPlaceholder]: "Введите пароль",
+	[Key.passwordSubmit]: "Разблокировать",
+	[Key.passwordError]: "Неверный пароль, попробуйте снова.",
+	[Key.passwordProtectedRss]:
+		"Эта статья зашифрована. Пожалуйста, посетите сайт для просмотра.",
+
+	// Виджет календаря（导航 Logo 资料卡）
+	[Key.calendarWeekRemaining]: "До конца недели",
+	[Key.calendarMonthRemaining]: "До конца месяца",
+	[Key.calendarYearRemaining]: "До конца года",
+	[Key.calendarDataUnavailable]: "Данные календаря недоступны",
+	[Key.calendarNoHoliday]: "Ближайший праздник не найден",
+	[Key.profileMonthWeek]: "{month}, неделя {week}",
+	[Key.profilePostCount]: "{count} пуб.",
+	[Key.profilePersonalSites]: "Личные сайты",
+	[Key.otherSites]: "Другие сайты",
+	[Key.profileHeatmap]: "Тепловая карта публикаций",
+	[Key.contactMe]: "Связаться",
+	[Key.navPosts]: "Статьи",
+	[Key.navMy]: "Другое",
+	[Key.navLinks]: "Навигация",
+	// ===== 通用操作 =====
+	[Key.close]: "Закрыть",
+	[Key.expand]: "Развернуть",
+	[Key.retry]: "Повторить",
+	[Key.cancel]: "Отмена",
+	[Key.save]: "Сохранить",
+	[Key.deleteLabel]: "Удалить",
+	[Key.send]: "Отправить",
+	[Key.login]: "Войти",
+	[Key.logout]: "Выйти",
+	[Key.gotIt]: "Понятно",
+	[Key.visitor]: "Гость",
+	[Key.viewDetails]: "Подробнее",
+	[Key.backToTop]: "Наверх",
+	[Key.top]: "Вверх",
+	[Key.menu]: "Меню",
+	[Key.theme]: "Тема",
+	[Key.tools]: "Инструменты",
+	[Key.breadcrumb]: "Навигационная цепочка",
+	[Key.copyPrefix]: "Копировать",
+	[Key.copyTemplate]: "Копировать шаблон",
+	[Key.copyNotice]: "Скопировано. При перепечатке укажите ссылку на эту статью",
+
+	// ===== 悬浮坞 / 导航 / 主题 =====
+	[Key.switchToDark]: "Включить тёмную тему",
+	[Key.switchToLight]: "Включить светлую тему",
+	[Key.spineModel]: "Модель Spine",
+	[Key.toggleDock]: "Панель инструментов",
+	[Key.quickActions]: "Быстрые действия",
+	[Key.announcementTicker]: "Бегущая строка объявлений",
+	[Key.viewAnnouncement]: "Открыть объявление",
+
+	// ===== 搜索弹窗 =====
+	[Key.searchArticles]: "Поиск по статьям",
+	[Key.searchPlaceholder1]: "Поиск по статьям, тегам, категориям...",
+	[Key.searchPlaceholder2]: "Введите ключевое слово",
+	[Key.searchPlaceholder3]: "Попробуйте «Astro» или «Svelte»",
+	[Key.searchPlaceholder4]: "ESC — закрыть панель поиска",
+	[Key.searchViewAllPrefix]: "Все",
+	[Key.searchViewAllSuffix]: "результатов →",
+	[Key.searchHintClose]: "ESC закрыть",
+	[Key.searchHintSearch]: "ENTER искать",
+	[Key.searchHintToggle]: "Ctrl+K переключить",
+	// ===== 首页 Hero 对话 =====
+	[Key.techBlogSuffix]: " — техноблог",
+	[Key.dialogueMenuTitle]: "О чём поговорим?",
+	[Key.characterDialogue]: "Диалог с персонажем",
+	[Key.dialoguePrev]: "Предыдущая реплика",
+	[Key.dialogueNext]: "Следующая реплика",
+	[Key.dialogueAutoPlay]: "Автовоспроизведение",
+	[Key.reopenDialogue]: "Снова открыть диалог",
+	[Key.dialogueRestoreHint]: "Мяу? Продолжим беседу?",
+
+	// ===== 首页数据层 =====
+	[Key.siteData]: "Данные сайта",
+	[Key.mapGuide]: "Путеводитель",
+	[Key.siteVisits]: "Посещения",
+	[Key.visitsLoading]: "Загрузка статистики посетителей",
+	[Key.visitsNotEnabled]: "Статистика не включена",
+	[Key.visitTrajectory]: "Траектория посещений",
+	[Key.articleArchive]: "Архив статей",
+	[Key.contentIndex]: "Индекс контента",
+	[Key.pinnedPosts]: "Закреплённые статьи",
+	[Key.latestUpdates]: "Последние обновления",
+	[Key.switchPinnedPost]: "Следующая закреплённая статья",
+	[Key.openPost]: "Открыть текущую статью",
+	[Key.viewPinnedPostPrefix]: "Открыть закреплённую: ",
+	[Key.viewLatestPostPrefix]: "Открыть последнюю: ",
+	[Key.continueReadingFallback]: "Откройте статью, чтобы продолжить чтение.",
+	[Key.noPinnedContent]: "Нет закреплённого контента",
+	[Key.noPosts]: "Статей пока нет",
+	[Key.categoryIndex]: "Каталог категорий",
+	[Key.viewAll]: "Показать все",
+	[Key.categoryUnit]: " категорий",
+	[Key.tagIndex]: "Каталог тегов",
+	[Key.tagUnit]: " тегов",
+	[Key.browseAllTags]: "Все теги",
+	[Key.tagIndexDescription]:
+		"Просмотр всех статей сайта по тегам — всего {count} тегов. Теги упорядочены по числу статей; выберите тег, чтобы увидеть все статьи по теме.",
+	[Key.tagPageDescription]:
+		"Все статьи с тегом «{tag}» — {count} шт. Сначала новые: практические заметки и разборы по связанным темам.",
+	[Key.categoryPageDescription]:
+		"Все статьи в категории «{category}» — {count} шт. Сначала новые: практические заметки и разборы в этой категории.",
+	[Key.relatedTags]: "Связанные теги",
+	[Key.subscribeContact]: "Подписка и контакты",
+	[Key.contactMethods]: "Контакты",
+	[Key.viewsLabel]: "Просмотры",
+	[Key.viewsBrowseLabel]: "Просмотры",
+
+	// ===== 页脚 =====
+	[Key.privacyPolicy]: "Политика конфиденциальности",
+	[Key.userAgreement]: "Пользовательское соглашение",
+	[Key.policeBeianAlt]: "Регистрация в полиции КНР",
+
+	// ===== 文章列表页 =====
+	[Key.publishDatePrefix]: "Опубликовано: ",
+	[Key.viewPostPrefix]: "Открыть статью: ",
+	[Key.encryptedPost]: "Зашифрованная статья",
+	[Key.totalPostsPrefix]: "Всего",
+	[Key.sortPosts]: "Сортировка статей",
+	[Key.sortLatest]: "Новые",
+	[Key.sortOldest]: "Старые",
+	[Key.sortPopular]: "Популярные",
+	[Key.sortByPrefix]: "Сортировка: ",
+	[Key.sortBySuffix]: "",
+	[Key.regularPosts]: "Обычные статьи",
+	[Key.noRegularPosts]: "Пока нет обычных статей",
+	[Key.noPostsHint]: "Новый контент появится здесь.",
+	[Key.paginationNav]: "Постраничная навигация статей",
+
+	// ===== 相对时间 =====
+
+	// ===== 友链 =====
+	[Key.friendRulesTitle]: "Как обменяться ссылками",
+	[Key.friendSiteInfo]: "Информация о сайте",
+	[Key.siteNameLabel]: "Название сайта",
+	[Key.siteDescLabel]: "Описание сайта",
+	[Key.siteUrlLabel]: "Ссылка на сайт",
+	[Key.siteAvatarLabel]: "Ссылка на аватар",
+	[Key.friendApplyUnderstood]: "Понятно, подать заявку",
+	[Key.applyProcess]: "Процесс заявки",
+	[Key.applyStep1Title]: "Добавьте нашу ссылку",
+	[Key.applyStep1Desc]:
+		"Сначала добавьте информацию о нашем сайте на вашу страницу ссылок — поля выше можно скопировать",
+	[Key.applyStep2Title]: "Подайте заявку в комментариях",
+	[Key.applyStep2Desc]:
+		"Скопируйте и измените шаблон ниже, затем отправьте его в комментариях на этой странице",
+	[Key.applyStep3Title]: "Ожидание проверки",
+	[Key.applyStep3Desc]:
+		"Мы добавим вашу ссылку как можно скорее после проверки информации",
+	[Key.friendApplyTemplate]:
+		"Название сайта: ваше название\nОписание сайта: ваше описание\nСсылка на сайт: ваша ссылка\nСсылка на аватар: ваш аватар",
+	[Key.friendNotesTitle]: "Примечания",
+	[Key.friendSelfApply]: "Самостоятельная заявка (рекомендуется)",
+	[Key.goToComments]: "К комментариям",
+	[Key.friendListAria]: "Список дружеских ссылок",
+	[Key.friendFilterAria]: "Фильтр ссылок по типу",
+	[Key.applyFriendLink]: "Обменяться ссылками",
+	[Key.avatarSuffix]: " — аватар",
+	[Key.friendEmptyTitle]: "В этой категории нет ссылок",
+	[Key.friendEmptyHint]: "Выберите другой тип блогов",
+
+	// ===== 音乐可视化 =====
+	[Key.playModeList]: "По списку",
+	[Key.playModeSingle]: "Повтор трека",
+	[Key.playModeShuffle]: "Случайный порядок",
+	[Key.currentTrack]: "Текущий трек",
+	[Key.musicPlayerLabel]: "Музыкальный плеер",
+	[Key.viewPlaylist]: "Открыть плейлист",
+	[Key.playbackControls]: "Управление воспроизведением",
+	[Key.playlistSwitch]: "Смена плейлиста",
+	[Key.backToPlayer]: "Назад к плееру",
+	[Key.currentPlaylist]: "Текущий плейлист",
+	[Key.playlistLoading]: "Загрузка плейлиста",
+	[Key.musicVisualizer]: "Музыкальная визуализация",
+	[Key.musicVisualizer3D]: "3D-визуализация",
+	[Key.musicVisualizerDescription]:
+		"Откройте иммерсивную музыкальную визуализацию, где воспроизведение превращается в динамичный трёхмерный ландшафт с атмосферными эффектами.",
+
+	// ===== Виджет календаря =====
+	[Key.dayShort]: " дн",
+
+	// ===== 弹窗 / 杂项 =====
+	[Key.pageLoading]: "Загрузка страницы",
+	[Key.pageLoadingAnimation]: "Анимация загрузки",
+	[Key.categoryFolderMeta]: "{posts} статей · {tags} тегов",
+	[Key.iconNotFound]: "Иконка не найдена: {icon}",
+	[Key.aboutSitePrefix]: "Об авторе: ",
+
+	// ===== 页面级描述 =====
+	[Key.archiveDescription]:
+		"Просматривайте все статьи по дате публикации, используйте категории, теги и фильтры для поиска тем и возвращайтесь к истории материалов сайта.",
+	[Key.tagGraphPageTitle]: "Граф тегов",
+	[Key.tagGraphPageDescription]:
+		"Изучайте статьи сайта через граф категорий и тегов, находите интересующие темы, связанные материалы и удобные пути для дальнейшего чтения.",
+	[Key.categoryExplorerTitle]: "Категории и теги",
+	[Key.categoryExplorerViewPosts]: "Все статьи",
+	[Key.categoryExplorerAria]: "Обзор категорий и тегов",
+	[Key.listDescription]:
+		"Все статьи блога в виде карточек, отсортированных по дате публикации. Постраничная навигация дает прямой доступ к более ранним материалам и помогает быстро найти нужное.",
+	[Key.noDescriptionFallback]: "Описание отсутствует. Откройте статью целиком.",
+	[Key.searchDescription]:
+		"Ищите опубликованные статьи и связанные материалы на сайте. Введите ключевые слова, чтобы быстро найти темы, заголовки и сведения из текста.",
+	[Key.aboutDescription]:
+		"Узнайте об авторе сайта, направлениях контента, техническом стеке и контактах, ознакомьтесь с журналом изменений и заметками об учёбе, разработке и жизни.",
+	[Key.aboutChangelogTitle]: "Журнал изменений",
+	[Key.aboutChangelogRecentLimit]:
+		"Показаны только последние {count} обновлений",
+	[Key.aboutChangelogPagesLabel]: "Затронутые страницы",
+	[Key.aboutChangelogRelatedLabel]: "Связанные обновления",
+	[Key.changelogTypeFeat]: "Новое",
+	[Key.changelogTypeFix]: "Исправление",
+	[Key.changelogTypeStyle]: "Стиль",
+	[Key.changelogTypeRefactor]: "Рефакторинг",
+	[Key.changelogTypeChore]: "Обслуживание",
+	[Key.albumPrefix]: "Альбом: ",
+	[Key.sponsorChooseMethod]: "Выберите способ оплаты",
+	[Key.sponsorNotAvailable]: "Пока недоступно",
+	[Key.postAiSummaryLabel]: "AI-сводка",
+	[Key.postCoverLabel]: "Обложка",
+	[Key.coverImageAltSuffix]: " — обложка",
+
+	// ===== 留言板 =====
+	[Key.sending]: "Отправка",
+	[Key.saving]: "Сохранение",
+	[Key.deleting]: "Удаление",
+	[Key.image]: "Изображение",
+	[Key.none]: "Нет",
+	[Key.emoji]: "Эмодзи",
+	[Key.gbVisitor]: "Гость",
+	[Key.gbAnonymousVisitor]: "Анонимный гость",
+	[Key.gbServerNotConfiguredLogin]:
+		"Адрес сервера Waline не настроен, вход недоступен",
+	[Key.gbLoginVerifyFailed]: "Не удалось проверить вход. Войдите заново",
+	[Key.gbLoginExpired]: "Данные входа устарели. Войдите заново",
+	[Key.gbAuthExpired]: "Сессия входа истекла. Войдите заново",
+	[Key.gbServerNotConfigured]: "Адрес сервера Waline не настроен",
+	[Key.gbOfflineInitial]:
+		"Вы не в сети. Сообщения загрузятся после восстановления сети",
+	[Key.gbNetworkDisconnected]:
+		"Сеть отключена. После восстановления нажимайте «Обновить сейчас»",
+	[Key.gbToday]: "Сегодня",
+	[Key.gbYesterday]: "Вчера",
+	[Key.gbMsgMinLength]: "Сообщение должно содержать минимум {min} символов",
+	[Key.gbMsgMaxLength]: "Сообщение не может превышать {max} символов",
+	[Key.gbMsgReplyMarker]:
+		"Сообщение не может начинаться с системного маркера цитаты",
+	[Key.gbLoginRequired]: "Войдите, чтобы отправить сообщение",
+	[Key.gbNicknameMinLength]: "Ник гостя должен содержать минимум {min} символа",
+	[Key.gbGuestProfileRequiredDisabled]: "Сначала заполните профиль гостя",
+	[Key.gbGuestProfileRequired]:
+		"Заполните профиль гостя или войдите, чтобы отправить",
+	[Key.gbEmailInvalid]: "Неверный формат email",
+	[Key.gbLinkProtocolInvalid]: "Ссылка должна использовать http или https",
+	[Key.gbLinkInvalid]: "Неверный формат ссылки",
+	[Key.gbSendFailed]: "Не удалось отправить сообщение",
+	[Key.gbEditFailed]: "Не удалось изменить сообщение. Попробуйте позже",
+	[Key.gbDeleteFailed]: "Не удалось удалить сообщение. Попробуйте позже",
+	[Key.gbLoginInvalidResponse]: "Неверный ответ при входе. Войдите заново",
+	[Key.gbLoginFailed]: "Ошибка входа. Попробуйте позже",
+	[Key.gbTitle]: "Гостевая книга",
+	[Key.gbOlderAbove]: "Выше ещё {count} сообщений",
+	[Key.gbOlderAboveShort]: "{count} сообщений",
+	[Key.gbRefreshNowAria]: "Обновить сообщения сейчас",
+	[Key.gbRefreshNowTitle]: "Обновить сейчас",
+	[Key.gbMembers]: "Авторы",
+	[Key.gbCloseAnnouncement]: "Закрыть объявление",
+	[Key.gbLoadingAria]: "Загрузка сообщений",
+	[Key.gbLoadFailedTitle]: "Не удалось загрузить гостевую книгу",
+	[Key.gbReload]: "Перезагрузить",
+	[Key.gbLoadingOlder]: "Загрузка более ранних сообщений",
+	[Key.gbLoadOlder]: "Загрузить более ранние",
+	[Key.gbNoMoreMessages]: "Это самое раннее сообщение",
+	[Key.gbEmptyTitle]: "Сообщений пока нет",
+	[Key.gbEmptyBody]: "Отправьте первое сообщение и начните беседу.",
+	[Key.gbNewMessagesAria]: "{count} новых сообщений, к последним",
+	[Key.gbBackToBottom]: "Вниз",
+	[Key.gbOffline]: "Сейчас вы не в сети",
+	[Key.gbRetrySync]: "Повторить синхронизацию",
+	[Key.gbCloseMembers]: "Закрыть список авторов",
+	[Key.gbMembersListAria]: "Список авторов",
+	[Key.gbAdmin]: "Владелец",
+	[Key.gbMemberCountAria]: "{count} чел.",
+	[Key.gbDeleteMessage]: "Удалить сообщение",
+	[Key.gbCloseDeleteConfirm]: "Закрыть подтверждение удаления",
+	[Key.gbDeleteWarning]:
+		"Действие необратимо. Сообщение будет удалено и с сервера Waline.",
+	[Key.gbEmojiLoadFailed]:
+		"Не удалось загрузить эмодзи Waline. Попробуйте позже",
+	[Key.gbEmojiImageTitle]: "эмодзи",
+	[Key.gbImageTypeUnsupported]: "Поддерживаются только PNG, JPEG, GIF и WebP",
+	[Key.gbImageTooLarge]: "Изображение не может превышать 5 МБ",
+	[Key.gbImageTooLargeInline]:
+		"Встроенные изображения Waline не могут превышать 128 КБ",
+	[Key.gbImageUploadFailed]:
+		"Не удалось загрузить изображение. Попробуйте позже",
+	[Key.gbComposerReplyTo]: "Ответ @{nick}",
+	[Key.gbCancelQuote]: "Отменить цитату",
+	[Key.gbResizeAria]: "Изменить высоту поля ввода",
+	[Key.gbResizeTitle]: "Потяните вверх, чтобы увеличить поле",
+	[Key.gbPlaceholderRequireLogin]: "Войдите, чтобы участвовать",
+	[Key.gbPlaceholder]: "Скажите что-нибудь...",
+	[Key.gbComposerAria]: "Текст сообщения",
+	[Key.gbRemoveImageAria]: "Убрать выбранное изображение",
+	[Key.gbRemoveImageTitle]: "Убрать изображение",
+	[Key.gbEmojiAria]: "Выбрать эмодзи",
+	[Key.gbUploadImageAria]: "Загрузить изображение",
+	[Key.gbCharCount]: "{count}/{max}",
+	[Key.gbAdminRole]: "Админ",
+	[Key.gbLoggedIn]: "Вошли",
+	[Key.gbNotLoggedIn]: "Вход не выполнен",
+	[Key.gbOr]: "или",
+	[Key.gbLoggingIn]: "Вход",
+	[Key.gbWalineEmojiAria]: "Эмодзи Waline",
+	[Key.gbLoadingEmoji]: "Загрузка эмодзи",
+	[Key.gbEmojiPacksAria]: "Наборы эмодзи",
+	[Key.gbInsertEmojiAria]: "Вставить {key}",
+	[Key.gbCloseTip]: "Закрыть подсказку",
+	[Key.gbGuestProfile]: "Профиль гостя",
+	[Key.gbCloseGuestProfile]: "Закрыть профиль гостя",
+	[Key.gbNickname]: "Ник",
+	[Key.gbNicknamePlaceholder]: "Минимум 2 символа",
+	[Key.gbEmail]: "Email",
+	[Key.gbEmailPlaceholder]: "Для аватара, не публикуется",
+	[Key.gbLink]: "Сайт",
+	[Key.gbOptional]: "необязательно",
+	[Key.gbSaveProfile]: "Сохранить профиль",
+	[Key.gbQuoteNotLoaded]: "Исходное сообщение ещё не загружено",
+	[Key.gbCopyFailed]:
+		"Не удалось скопировать. Проверьте права доступа к буферу обмена",
+	[Key.gbJumpToQuoteAria]: "Перейти к сообщению {nick}",
+	[Key.gbJumpToQuoteTitle]: "К исходному сообщению",
+	[Key.gbVisitSiteTitle]: "Посетить сайт {nick}",
+	[Key.gbPendingReview]: "на проверке",
+	[Key.gbEditMessageWithName]: "Редактирование сообщения {nick}",
+	[Key.gbMessageActionsAria]: "Действия с сообщением",
+	[Key.gbReplyAria]: "Ответить {nick}",
+	[Key.gbQuoteReply]: "Ответить цитатой",
+	[Key.gbCopied]: "Скопировано",
+	[Key.gbCopyMessage]: "Копировать сообщение",
+	[Key.gbEditMessage]: "Редактировать",
+
+	[Key.tagGraphAccessible]:
+		"Граф связей тегов: {tags} тегов и {links} связей. Выберите тег стрелками, откройте клавишей Enter.",
+	[Key.tagGraphEmpty]: "Связей тегов пока нет",
+	[Key.tagGraphPreparing]: "Подготовка графа…",
+	[Key.tagGraphFailed]: "Не удалось загрузить граф",
+	[Key.kgDetailTitle]: "Сведения об узле",
+	[Key.kgSectionsCount]: "{count} разделов",
+	[Key.kgPanelTitle]: "Управление графом",
+	[Key.kgSectionFilters]: "Фильтры",
+	[Key.kgSectionGroups]: "Категории",
+	[Key.kgSectionAppearance]: "Внешний вид",
+	[Key.kgSectionAnimation]: "Анимация",
+	[Key.kgTierCategory]: "Категории",
+	[Key.kgTierTag]: "Теги",
+	[Key.kgTierPost]: "Статьи",
+	[Key.kgTierHeading]: "Заголовки",
+	[Key.kgSearch]: "Поиск узлов…",
+	[Key.kgMinPosts]: "Минимум статей",
+	[Key.kgShowCooccurrence]: "Связи совстречаемости тегов",
+	[Key.kgParticles]: "Движущиеся частицы",
+	[Key.kgPlay]: "Воспроизвести",
+	[Key.kgPause]: "Пауза",
+	[Key.kgResetView]: "Сбросить вид",
+	[Key.kgLayoutMindmap]: "Переключить на минд-карту",
+	[Key.kgLayoutForce]: "Переключить на силовой граф",
+	[Key.kgCollapsePanel]: "Свернуть панель",
+	[Key.kgExpandPanel]: "Развернуть панель",
+	[Key.postNavBack]: "Назад",
+	[Key.postNavCategory]: "Сменить категорию",
+	[Key.archiveMotto]:
+		"Время не оборачивается, но все пройденные дороги оставляет здесь.",
+	[Key.collectionsMotto]:
+		"Хорошие инструменты не шумят — они лишь приближают вас к задуманному.",
+	[Key.aboutMotto]:
+		"Кто я — на это медленно отвечает лишь то, что я успел написать.",
+	[Key.friendsMotto]:
+		"Между двумя огнями лежит ночь — потому они и видят друг друга.",
+	[Key.sponsorMotto]:
+		"Любовь к делу не просит награды, но замеченная — идёт дальше.",
+	[Key.galleryMotto]: "Лишь когда падает затвор, время обретает форму.",
+	[Key.rssMotto]: "Не нужно догонять прилив — он придёт к вам сам.",
+	[Key.postsMotto]:
+		"Мы записываем, чтобы однажды продуманное не развеял ветер.",
+	[Key.searchMotto]: "Каждый ответ скрыт в том, как задан вопрос.",
+	[Key.kgStats]: "{visible} / {total} узлов · {links} связей",
+	[Key.kgRelations]: "{count} связей",
+	[Key.kgLoaded]: "Граф знаний загружен",
+	[Key.switchPinnedAria]: "Переключить закреплённые",
+	[Key.switchLatestAria]: "Переключить последние",
+	[Key.openPostPrefix]: "Открыть статью: ",
+};

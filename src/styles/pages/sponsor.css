@@ -1,0 +1,356 @@
+/* ============================================
+   赞助页 — 来自 sponsor.astro
+   ============================================ */
+
+/* ============================================
+   扫码赞助卡片
+   ============================================ */
+
+.sponsor-qr-card__outer {
+	display: block;
+	width: 100%;
+	padding: 1.5rem;
+	border: 2px solid #1a1a1a;
+	border-radius: var(--radius-large, 0.75rem);
+	background: transparent;
+}
+
+:root.dark .sponsor-qr-card__outer {
+	border-color: #2e2e2e;
+}
+
+.sponsor-qr-card {
+	position: relative;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+/* 第一层：扫码赞助标题 */
+.sponsor-qr-card__header {
+	margin-bottom: 0.25rem;
+}
+
+.sponsor-qr-card__title {
+	font-size: 1rem;
+	font-weight: 500;
+	color: var(--neutral-900, #111827);
+	line-height: 1.4;
+}
+
+:root.dark .sponsor-qr-card__title {
+	color: #dadada;
+}
+
+/* 第二层：选择支付方式 */
+.sponsor-qr-card__subtitle {
+	font-size: 0.8125rem;
+	color: var(--neutral-500, #6b7280);
+	margin-bottom: 1rem;
+	line-height: 1.5;
+}
+
+:root.dark .sponsor-qr-card__subtitle {
+	color: #b3b3b3;
+}
+
+/* 第三层：Tabs 导航 */
+.sponsor-qr-card__tabs-wrapper {
+	margin-bottom: 1.5rem;
+}
+
+.sponsor-qr-card__tabs-pill {
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.375rem;
+	padding: 0.375rem;
+	border-radius: 1rem;
+	border: 1.5px solid #000;
+}
+
+:root.dark .sponsor-qr-card__tabs-pill {
+	border-color: #2e2e2e;
+}
+
+.sponsor-qr-card__tabs-indicator {
+	position: absolute;
+	border-radius: 9999px;
+	background: #000;
+	transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+				top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+				width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+				height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	opacity: 0;
+	pointer-events: none;
+	z-index: 0;
+}
+
+:root.dark .sponsor-qr-card__tabs-indicator {
+	background: #282828;
+}
+
+.sponsor-qr-card__tab-btn {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
+	padding: 0.375rem 0.875rem;
+	border: none;
+	border-radius: 9999px;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	white-space: nowrap;
+	cursor: pointer;
+	background: transparent;
+	transition: color 0.2s;
+	flex-shrink: 0;
+}
+
+/* 激活态：指示条覆盖时白色文字 */
+.sponsor-qr-card__tab-btn--active {
+	color: #fff;
+	cursor: default;
+}
+
+:root.dark .sponsor-qr-card__tab-btn--active {
+	color: #dadada;
+}
+
+/* 未激活态：黑色文字 */
+.sponsor-qr-card__tab-btn--inactive {
+	color: #000;
+}
+
+.sponsor-qr-card__tab-btn--inactive:hover {
+	opacity: 0.7;
+}
+
+:root.dark .sponsor-qr-card__tab-btn--inactive {
+	color: #b3b3b3;
+}
+
+/* 第四层：二维码图片 */
+.sponsor-qr-card__content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+}
+
+.sponsor-qr-card__panel {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}
+
+.sponsor-qr-card__panel.hidden {
+	display: none;
+}
+
+.sponsor-qr-card__image-wrapper {
+	width: 100%;
+	max-width: 400px;
+	aspect-ratio: 1 / 1;
+	background: transparent;
+	border-radius: 0;
+	padding: 0;
+	box-shadow: none;
+}
+
+.sponsor-qr-card__image {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+/* 无二维码时的空状态 */
+.sponsor-qr-card__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	max-width: 400px;
+	aspect-ratio: 1 / 1;
+	color: var(--neutral-400, #9ca3af);
+}
+
+.sponsor-qr-card__empty-text {
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+/* 移动端适配 */
+@media (max-width: 640px) {
+	.sponsor-qr-card__outer {
+		padding: 1rem;
+	}
+
+	.sponsor-qr-card__tabs-pill {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+	}
+
+	.sponsor-qr-card__tab-btn {
+		flex-shrink: 0;
+	}
+
+	.sponsor-qr-card__image-wrapper {
+		max-width: 280px;
+	}
+}
+
+/* ============================================
+   赞助者列表
+   ============================================ */
+
+.sponsor-list {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.625rem;
+}
+
+.sponsor-list__heading {
+	display: flex;
+	align-items: baseline;
+	gap: 0.75rem;
+	min-width: 0;
+	flex-wrap: wrap;
+}
+
+.sponsor-list__total {
+	color: var(--primary);
+	font-size: 0.9375rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.sponsor-row {
+	display: flex;
+	align-items: center;
+	padding: 1rem 0.875rem;
+	border-radius: 0.75rem;
+	border: 2px solid #1a1a1a;
+	transition: border-color 0.2s ease;
+}
+
+:root.dark .sponsor-row {
+	border-color: #2e2e2e;
+}
+
+.sponsor-row:hover {
+	border-color: var(--primary, #4f46e5);
+}
+
+.sponsor-avatar {
+	width: 3rem;
+	height: 3rem;
+	flex-shrink: 0;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--primary, #4f46e5) 10%, transparent);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 0.625rem;
+	transition: background 0.2s ease;
+}
+
+.sponsor-row:hover .sponsor-avatar {
+	background: color-mix(in srgb, var(--primary, #4f46e5) 20%, transparent);
+}
+
+.sponsor-avatar span {
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: var(--primary, #4f46e5);
+}
+
+.sponsor-avatar__img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 50%;
+}
+
+.sponsor-info {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.sponsor-name {
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--neutral-900, #111827);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+:root.dark .sponsor-name {
+	color: #dadada;
+}
+
+.sponsor-date {
+	font-size: 0.7rem;
+	color: var(--neutral-400, #9ca3af);
+	margin-top: 0.25rem;
+}
+
+:root.dark .sponsor-date {
+	color: #666666;
+}
+
+.sponsor-amount {
+	flex-shrink: 0;
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--primary, #4f46e5);
+	margin-left: 0.75rem;
+}
+
+/* 平板：两列 */
+@media (max-width: 1024px) {
+	.sponsor-list {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+/* 移动端：单列 */
+@media (max-width: 640px) {
+	.sponsor-list__heading {
+		align-items: flex-start;
+		gap: 0.375rem 0.75rem;
+	}
+
+	.sponsor-list {
+		grid-template-columns: 1fr;
+	}
+
+	.sponsor-row {
+		padding: 0.875rem 0.75rem;
+	}
+
+	.sponsor-avatar {
+		width: 2.75rem;
+		height: 2.75rem;
+		margin-right: 0.625rem;
+	}
+
+	.sponsor-avatar span {
+		font-size: 1rem;
+	}
+
+	.sponsor-name {
+		font-size: 0.9375rem;
+	}
+
+	.sponsor-amount {
+		font-size: 0.9375rem;
+	}
+}

@@ -1,0 +1,617 @@
+import Key from "../i18nKey";
+import type { Translation } from "../translation";
+
+export const en: Translation = {
+	[Key.home]: "Home",
+	[Key.about]: "About",
+	[Key.archive]: "Archive",
+	[Key.archiveStatsTotalPosts]: "All posts",
+	[Key.archiveStatsMonthPosts]: "Posts this month",
+	[Key.archiveStatsWritingSpan]: "Writing span (days)",
+	[Key.archiveStatsEvaluationAhead]:
+		"Publishing is well ahead of plan. With {remaining} posts left and {months} months remaining, about {pace} posts per month will comfortably reach the annual goal.",
+	[Key.archiveStatsEvaluationOnTrack]:
+		"Publishing is broadly on schedule. With {remaining} posts left and {months} months remaining, maintain about {pace} posts per month.",
+	[Key.archiveStatsEvaluationBehind]:
+		"Publishing is currently behind plan. With {remaining} posts left and {months} months remaining, about {pace} posts per month are needed for a stronger finish.",
+	[Key.archiveStatsEvaluationComplete]:
+		"The annual goal is complete. The focus can now shift from volume to quality, stronger series, and long-term value.",
+	[Key.archiveStatsCategoryPosts]: "Posts in category",
+	[Key.archiveStatsTagPosts]: "Posts with tag",
+	[Key.archiveStatsProgress]: "Annual progress",
+	[Key.archiveStatsUnavailable]: "--",
+	[Key.archiveStatsGoal]: "Annual goal",
+	[Key.search]: "Search",
+	[Key.searchNoResults]: "No results found.",
+	[Key.searchTypeSomething]: "Type something to search...",
+	[Key.searchLoading]: "Searching...",
+	[Key.all]: "All",
+
+	[Key.tags]: "Tags",
+	[Key.categories]: "Categories",
+	[Key.postList]: "Docs",
+	[Key.tableOfContents]: "Table of Contents",
+	[Key.readingProgress]: "Reading progress",
+	[Key.tocEmpty]: "No table of contents on this page",
+	[Key.tocAccordionAuto]: "Auto-collapse accordion",
+	[Key.tocExpandAll]: "Expand all",
+	[Key.tocCollapseAll]: "Collapse all",
+	[Key.tocMindMap]: "Mind map",
+	[Key.tocMindMapZoomIn]: "Zoom in",
+	[Key.tocMindMapZoomOut]: "Zoom out",
+	[Key.tocMindMapReset]: "Reset zoom",
+	[Key.tocMindMapFullscreen]: "Fullscreen",
+	[Key.music]: "Music",
+	[Key.musicNoPlaying]: "No playing",
+	[Key.musicLyrics]: "Lyrics",
+	[Key.musicVolume]: "Volume",
+	[Key.musicPlayMode]: "Switch Play Mode",
+	[Key.musicPrev]: "Previous",
+	[Key.musicNext]: "Next",
+	[Key.musicPlaylist]: "Playlist",
+	[Key.musicNoLyrics]: "No lyrics available",
+	[Key.musicLoadingLyrics]: "Loading lyrics...",
+	[Key.musicFailedLyrics]: "Failed to load lyrics",
+	[Key.musicNoSongs]: "No songs",
+	[Key.musicError]: "Player Error",
+	[Key.musicPlay]: "Play",
+	[Key.musicPause]: "Pause",
+	[Key.musicProgress]: "Playback Progress",
+	[Key.musicCover]: "Cover",
+	[Key.musicNoCover]: "No cover available",
+
+	// Announcement
+	[Key.announcement]: "Announcement",
+	[Key.announcementClose]: "Close",
+
+	[Key.comments]: "Comments",
+	[Key.friends]: "Friends",
+	[Key.friendsDescription]:
+		"Browse this site's collection of friendly links and independent blogs, discover other websites, and learn how to exchange links and stay connected.",
+	[Key.guestbook]: "Guestbook",
+	[Key.guestbookDescription]:
+		"Use the guestbook to leave ideas, suggestions, and messages for other visitors. Please follow the community rules to help keep the conversation respectful and welcoming.",
+	[Key.commentSection]: "Comments",
+	[Key.commentSubtitle]: "Feel free to leave a comment and join the discussion",
+	[Key.commentNotConfigured]:
+		"Comments are not configured. Please set up a comment system in the admin panel.",
+	[Key.commentNotOpenYet]: "Comments are not open yet",
+	[Key.uncategorized]: "Uncategorized",
+	[Key.noTags]: "No Tags",
+
+	[Key.wordCount]: "word",
+	[Key.wordsCount]: "words",
+	[Key.minuteCount]: "minute",
+	[Key.minutesCount]: "minutes",
+	[Key.postCount]: "post",
+	[Key.postsCount]: "posts",
+	[Key.articles]: "Articles",
+
+	[Key.more]: "More",
+	[Key.collapse]: "Collapse",
+
+	[Key.author]: "Author",
+	[Key.publishedAt]: "Published at",
+	[Key.license]: "License",
+	[Key.bangumi]: "Bangumi",
+
+	// Bangumi Filter and Status Text
+	[Key.bangumiPage]: "page",
+
+	// Bangumi Categories
+
+	// Bangumi Data Update
+
+	// Pagination
+	[Key.paginationPrev]: "Previous",
+	[Key.paginationNext]: "Next",
+	[Key.prevPost]: "Previous post",
+	[Key.nextPost]: "Next post",
+	[Key.paginationPage]: "Page",
+	[Key.paginationOf]: "of",
+	[Key.paginationStatus]: "Page {current} of {total}",
+
+	// 404 Page
+	[Key.notFound]: "404",
+	[Key.notFoundTitle]: "Page Not Found",
+	[Key.notFoundDescription]:
+		"Sorry, the page you visited does not exist or has been moved.",
+	[Key.backToHome]: "Back to Home",
+
+	// RSS Page
+	[Key.rss]: "RSS Feed",
+	[Key.rssDescription]:
+		"Subscribe to this site's RSS feed to receive new posts in your preferred reader and follow the latest updates without checking the website manually.",
+	[Key.rssLink]: "RSS Link",
+	[Key.rssCopyToReader]: "Copy link to your RSS reader",
+	[Key.rssCopyLink]: "Copy Link",
+	[Key.rssLatestPosts]: "Latest Posts",
+	[Key.rssWhatIsRSS]: "What is RSS?",
+	[Key.rssWhatIsRSSDescription]:
+		"RSS (Really Simple Syndication) is a standard format for publishing frequently updated content. With RSS, you can:",
+	[Key.rssBenefit1]:
+		"Get the latest website content in time without manually visiting",
+	[Key.rssBenefit2]: "Manage subscriptions to multiple websites in one place",
+	[Key.rssBenefit3]: "Avoid missing important updates and articles",
+	[Key.rssBenefit4]: "Enjoy an ad-free, clean reading experience",
+	[Key.rssHowToUse]:
+		"It is recommended to use Feedly, Inoreader or other RSS readers to subscribe to this site.",
+	[Key.rssCopied]: "RSS link copied to clipboard!",
+	[Key.rssCopyFailed]: "Copy failed, please copy the link manually",
+
+	// Last Modified Time Card
+	[Key.lastModifiedPrefix]: "Last updated on ",
+	[Key.lastModifiedOutdated]: "Some content may be outdated",
+	[Key.lastModifiedDaysAgo]: "{days} days ago",
+	[Key.year]: "year",
+	[Key.month]: "month",
+	[Key.day]: "day",
+	[Key.hour]: "hour",
+	[Key.minute]: "minute",
+	[Key.second]: "second",
+
+	// Page Views Statistics
+	[Key.pageViews]: "Views",
+	[Key.pageViewsLoading]: "Loading...",
+
+	// Pinned
+	[Key.pinned]: "Pinned",
+
+	// Related Posts
+	[Key.relatedPosts]: "Related Posts",
+
+	// Encrypted
+
+	// Post List Layout
+
+	// Tipping Page
+	[Key.sponsor]: "Tip",
+	[Key.sponsorTitle]: "Tip",
+	[Key.sponsorDescription]:
+		"Find available tipping methods and a list of supporters. Tips help maintain the site, fund new content, and support ongoing updates.",
+	[Key.sponsorList]: "Tips",
+	[Key.sponsorTotal]: "Total tips",
+	[Key.sponsorEmpty]: "No tips yet",
+	[Key.scanToSponsor]: "Scan to Tip",
+
+	// Site Statistics
+	[Key.siteStats]: "Site Statistics",
+	[Key.siteStatsPostCount]: "Posts",
+	[Key.siteStatsCategoryCount]: "Categories",
+	[Key.siteStatsTagCount]: "Tags",
+	[Key.siteStatsVisitors]: "Visitors",
+	[Key.siteStatsSource]: "Source",
+	[Key.footerRunningDays]: "Running for {days} days",
+	[Key.footerRunningTime]: "Running for {days}d {hours}h {minutes}m {seconds}s",
+	[Key.footerLastUpdate]: "Last updated {days} days ago",
+	[Key.today]: "Today",
+
+	[Key.shareArticle]: "Share",
+	[Key.scanToShare]: "Scan to share",
+	[Key.shareQQ]: "QQ",
+	[Key.shareEmail]: "Email",
+	[Key.shareFeishu]: "Feishu",
+	[Key.shareX]: "X",
+	[Key.shareWhatsApp]: "WhatsApp",
+	[Key.copied]: "Copied",
+	[Key.copyLink]: "Copy Link",
+	[Key.shareToQQ]: "Share on QQ",
+	[Key.shareByEmail]: "Share via email",
+	[Key.shareToFeishu]: "Share on Feishu",
+	[Key.shareToX]: "Share on X",
+	[Key.shareToWhatsApp]: "Share via WhatsApp",
+
+	// Code Block Collapsible Configuration
+
+	// Gallery Page
+	[Key.gallery]: "Gallery",
+	[Key.galleryDescription]:
+		"Browse the site's albums, explore images and works by theme, and revisit saved moments, visual ideas, and creative projects.",
+	[Key.galleryPhotos]: "photos",
+	[Key.galleryNoAlbums]: "No albums yet",
+	[Key.galleryBackToAlbums]: "Back to albums",
+
+	// Collections API page
+	[Key.collections]: "Tools",
+	[Key.collectionsDescription]:
+		"Browse a curated directory of useful tools, public APIs, and resource links. Explore categories to quickly find services that suit your current task.",
+	[Key.collectionsEmpty]: "No collected APIs yet",
+
+	// Stats page
+	[Key.stats]: "Stats",
+
+	// Password Protection
+	[Key.passwordProtected]: "Password Protected",
+	[Key.passwordProtectedDesc]:
+		"This article is password protected. Please enter the password to view the content.",
+	[Key.passwordHint]: "Hint",
+	[Key.passwordPlaceholder]: "Enter password",
+	[Key.passwordSubmit]: "Unlock",
+	[Key.passwordError]: "Incorrect password, please try again.",
+	[Key.passwordProtectedRss]:
+		"This article is encrypted. Please visit the website to view it.",
+
+	// Calendar utility widget（导航 Logo 资料卡）
+	[Key.calendarWeekRemaining]: "Until week end",
+	[Key.calendarMonthRemaining]: "Until month end",
+	[Key.calendarYearRemaining]: "Until year end",
+	[Key.calendarDataUnavailable]: "Calendar data is unavailable",
+	[Key.calendarNoHoliday]: "No upcoming holiday found",
+	[Key.profileMonthWeek]: "Week {week} of {month}",
+	[Key.profilePostCount]: "{count} posts",
+	[Key.profilePersonalSites]: "Personal sites",
+	[Key.otherSites]: "Other sites",
+	[Key.profileHeatmap]: "Posting heatmap",
+	[Key.contactMe]: "Contact",
+	[Key.navPosts]: "Posts",
+	[Key.navMy]: "Others",
+	[Key.navLinks]: "Links",
+	// ===== 通用操作 =====
+	[Key.close]: "Close",
+	[Key.expand]: "Expand",
+	[Key.retry]: "Retry",
+	[Key.cancel]: "Cancel",
+	[Key.save]: "Save",
+	[Key.deleteLabel]: "Delete",
+	[Key.send]: "Send",
+	[Key.login]: "Log in",
+	[Key.logout]: "Log out",
+	[Key.gotIt]: "Got it",
+	[Key.visitor]: "Visitor",
+	[Key.viewDetails]: "View details",
+	[Key.backToTop]: "Back to top",
+	[Key.top]: "Top",
+	[Key.menu]: "Menu",
+	[Key.theme]: "Theme",
+	[Key.tools]: "Tools",
+	[Key.breadcrumb]: "Breadcrumb",
+	[Key.copyPrefix]: "Copy",
+	[Key.copyTemplate]: "Copy template",
+	[Key.copyNotice]: "Copied. Please credit this article's URL when reposting.",
+
+	// ===== 悬浮坞 / 导航 / 主题 =====
+	[Key.switchToDark]: "Switch to dark mode",
+	[Key.switchToLight]: "Switch to light mode",
+	[Key.spineModel]: "Spine model",
+	[Key.toggleDock]: "Toggle dock",
+	[Key.quickActions]: "Quick actions",
+	[Key.announcementTicker]: "Announcement ticker",
+	[Key.viewAnnouncement]: "View announcement",
+
+	// ===== 搜索弹窗 =====
+	[Key.searchArticles]: "Search articles",
+	[Key.searchPlaceholder1]: "Search posts, tags, categories...",
+	[Key.searchPlaceholder2]: "Type a keyword to start searching",
+	[Key.searchPlaceholder3]: "Try searching for 'Astro' or 'Svelte'",
+	[Key.searchPlaceholder4]: "Press ESC to close the search panel",
+	[Key.searchViewAllPrefix]: "View all",
+	[Key.searchViewAllSuffix]: "results →",
+	[Key.searchHintClose]: "ESC to close",
+	[Key.searchHintSearch]: "ENTER to search",
+	[Key.searchHintToggle]: "Ctrl+K to switch",
+	// ===== 首页 Hero 对话 =====
+	[Key.techBlogSuffix]: "'s Tech Blog",
+	[Key.dialogueMenuTitle]: "What shall we talk about?",
+	[Key.characterDialogue]: "Character dialogue",
+	[Key.dialoguePrev]: "Previous line",
+	[Key.dialogueNext]: "Next line",
+	[Key.dialogueAutoPlay]: "Auto play",
+	[Key.reopenDialogue]: "Reopen dialogue",
+	[Key.dialogueRestoreHint]: "Meow? Want to keep chatting?",
+
+	// ===== 首页数据层 =====
+	[Key.siteData]: "Site Data",
+	[Key.mapGuide]: "Map Guide",
+	[Key.siteVisits]: "Site Visits",
+	[Key.visitsLoading]: "Loading visitor and view stats",
+	[Key.visitsNotEnabled]: "Statistics not enabled",
+	[Key.visitTrajectory]: "Visit Trajectory",
+	[Key.articleArchive]: "Article Archive",
+	[Key.contentIndex]: "Content Index",
+	[Key.pinnedPosts]: "Pinned Posts",
+	[Key.latestUpdates]: "Latest Updates",
+	[Key.switchPinnedPost]: "Switch to next pinned post",
+	[Key.openPost]: "Open current post",
+	[Key.viewPinnedPostPrefix]: "View pinned post: ",
+	[Key.viewLatestPostPrefix]: "View latest post: ",
+	[Key.continueReadingFallback]: "Open this post to continue reading.",
+	[Key.noPinnedContent]: "No pinned content yet",
+	[Key.noPosts]: "No posts yet",
+	[Key.categoryIndex]: "Category Index",
+	[Key.viewAll]: "View all",
+	[Key.categoryUnit]: " categories",
+	[Key.tagIndex]: "Tag Index",
+	[Key.tagUnit]: " tags",
+	[Key.browseAllTags]: "All Tags",
+	[Key.tagIndexDescription]:
+		"Browse every post on this site by tag — {count} tags in total. Tags are ordered by post count; select any tag to see all posts on that topic.",
+	[Key.tagPageDescription]:
+		"All {count} posts tagged “{tag}”, listed newest first, covering practice notes and write-ups on related topics.",
+	[Key.categoryPageDescription]:
+		"All {count} posts in the “{category}” category, listed newest first, covering practice notes and write-ups in this category.",
+	[Key.relatedTags]: "Related tags",
+	[Key.subscribeContact]: "Subscribe & Contact",
+	[Key.contactMethods]: "Contact",
+	[Key.viewsLabel]: "Views",
+	[Key.viewsBrowseLabel]: "Views",
+
+	// ===== 页脚 =====
+	[Key.privacyPolicy]: "Privacy Policy",
+	[Key.userAgreement]: "User Agreement",
+	[Key.policeBeianAlt]: "Police registration",
+
+	// ===== 文章列表页 =====
+	[Key.publishDatePrefix]: "Published: ",
+	[Key.viewPostPrefix]: "View post: ",
+	[Key.encryptedPost]: "Encrypted post",
+	[Key.totalPostsPrefix]: "",
+	[Key.sortPosts]: "Sort posts",
+	[Key.sortLatest]: "Latest",
+	[Key.sortOldest]: "Earliest",
+	[Key.sortPopular]: "Popular",
+	[Key.sortByPrefix]: "Sorted by ",
+	[Key.sortBySuffix]: "",
+	[Key.regularPosts]: "Regular posts",
+	[Key.noRegularPosts]: "No regular posts yet",
+	[Key.noPostsHint]: "New content will appear here.",
+	[Key.paginationNav]: "Post pagination",
+
+	// ===== 相对时间 =====
+
+	// ===== 友链 =====
+	[Key.friendRulesTitle]: "Friend Link Guide",
+	[Key.friendSiteInfo]: "Site Info",
+	[Key.siteNameLabel]: "Site name",
+	[Key.siteDescLabel]: "Site description",
+	[Key.siteUrlLabel]: "Site URL",
+	[Key.siteAvatarLabel]: "Avatar URL",
+	[Key.friendApplyUnderstood]: "Got it, apply now",
+	[Key.applyProcess]: "How to Apply",
+	[Key.applyStep1Title]: "Add our link",
+	[Key.applyStep1Desc]:
+		"Add our site info to your friends page first; you can copy the fields above",
+	[Key.applyStep2Title]: "Submit in the comments",
+	[Key.applyStep2Desc]:
+		"Copy and edit the template below, then submit it in the comments on this page",
+	[Key.applyStep3Title]: "Wait for review",
+	[Key.applyStep3Desc]:
+		"We will add your link as soon as the info is confirmed",
+	[Key.friendApplyTemplate]:
+		"Site name: your site name\nSite description: your site description\nSite URL: your site URL\nAvatar URL: your avatar URL",
+	[Key.friendNotesTitle]: "Notes",
+	[Key.friendSelfApply]: "Self-service application (recommended)",
+	[Key.goToComments]: "Go to comments",
+	[Key.friendListAria]: "Friend links",
+	[Key.friendFilterAria]: "Filter friend links by type",
+	[Key.applyFriendLink]: "Apply for a friend link",
+	[Key.avatarSuffix]: " avatar",
+	[Key.friendEmptyTitle]: "No friend links in this category",
+	[Key.friendEmptyHint]: "Try another blog type",
+
+	// ===== 音乐可视化 =====
+	[Key.playModeList]: "List loop",
+	[Key.playModeSingle]: "Single loop",
+	[Key.playModeShuffle]: "Shuffle",
+	[Key.currentTrack]: "Current track",
+	[Key.musicPlayerLabel]: "Music player",
+	[Key.viewPlaylist]: "View playlist",
+	[Key.playbackControls]: "Playback controls",
+	[Key.playlistSwitch]: "Playlist switch",
+	[Key.backToPlayer]: "Back to player",
+	[Key.currentPlaylist]: "Current playlist",
+	[Key.playlistLoading]: "Loading playlist",
+	[Key.musicVisualizer]: "Music visualizer",
+	[Key.musicVisualizer3D]: "3D visualizer",
+	[Key.musicVisualizerDescription]:
+		"Enter an immersive music visualization that turns playback into a dynamic 3D landscape, adding motion and atmosphere to every listening session.",
+
+	// ===== Calendar utility widget =====
+	[Key.dayShort]: "d",
+
+	// ===== 弹窗 / 杂项 =====
+	[Key.pageLoading]: "Page loading",
+	[Key.pageLoadingAnimation]: "Loading animation",
+	[Key.categoryFolderMeta]: "{posts} posts · {tags} tags",
+	[Key.iconNotFound]: "Icon not found: {icon}",
+	[Key.aboutSitePrefix]: "About ",
+
+	// ===== 页面级描述 =====
+	[Key.archiveDescription]:
+		"Browse every post by publication date, then use categories, tags, and filters to locate topics quickly and revisit the site's writing history.",
+	[Key.tagGraphPageTitle]: "Tag Graph",
+	[Key.tagGraphPageDescription]:
+		"Browse this site's posts through categories, tags, and their relationship graph to discover topics of interest and find related articles quickly.",
+	[Key.categoryExplorerTitle]: "Categories & Tags",
+	[Key.categoryExplorerViewPosts]: "Browse posts",
+	[Key.categoryExplorerAria]: "Category and tag browser",
+	[Key.listDescription]:
+		"Browse all posts in a card-based list ordered by publication date, with paginated pages for direct access to older posts.",
+	[Key.noDescriptionFallback]: "No description. Click to read the full post.",
+	[Key.searchDescription]:
+		"Search published posts and related content across the site. Enter keywords to quickly find relevant topics, titles, and information from article text.",
+	[Key.aboutDescription]:
+		"Learn about the site's author, content focus, technical stack, and contact details, then explore its changelog, maintenance notes, and ongoing direction.",
+	[Key.aboutChangelogTitle]: "Changelog",
+	[Key.aboutChangelogRecentLimit]: "Showing the {count} most recent updates",
+	[Key.aboutChangelogPagesLabel]: "Pages involved",
+	[Key.aboutChangelogRelatedLabel]: "Related updates",
+	[Key.changelogTypeFeat]: "Feature",
+	[Key.changelogTypeFix]: "Fix",
+	[Key.changelogTypeStyle]: "Style",
+	[Key.changelogTypeRefactor]: "Refactor",
+	[Key.changelogTypeChore]: "Chore",
+	[Key.albumPrefix]: "Album: ",
+	[Key.sponsorChooseMethod]: "Choose your preferred payment method",
+	[Key.sponsorNotAvailable]: "Not available yet",
+	[Key.postAiSummaryLabel]: "AI Summary",
+	[Key.postCoverLabel]: "Cover",
+	[Key.coverImageAltSuffix]: " cover image",
+
+	// ===== 留言板 =====
+	[Key.sending]: "Sending",
+	[Key.saving]: "Saving",
+	[Key.deleting]: "Deleting",
+	[Key.image]: "Image",
+	[Key.none]: "None",
+	[Key.emoji]: "Emoji",
+	[Key.gbVisitor]: "Visitor",
+	[Key.gbAnonymousVisitor]: "Anonymous visitor",
+	[Key.gbServerNotConfiguredLogin]:
+		"Waline server URL is not configured. Login is unavailable.",
+	[Key.gbLoginVerifyFailed]: "Failed to verify login. Please sign in again.",
+	[Key.gbLoginExpired]: "Your login has expired. Please sign in again.",
+	[Key.gbAuthExpired]: "Login session expired. Please sign in again.",
+	[Key.gbServerNotConfigured]: "Waline server URL is not configured",
+	[Key.gbOfflineInitial]:
+		"You are offline. Messages will load once the network recovers.",
+	[Key.gbNetworkDisconnected]:
+		"Network disconnected. Tap refresh to sync once reconnected.",
+	[Key.gbToday]: "Today",
+	[Key.gbYesterday]: "Yesterday",
+	[Key.gbMsgMinLength]: "Message must be at least {min} characters",
+	[Key.gbMsgMaxLength]: "Message cannot exceed {max} characters",
+	[Key.gbMsgReplyMarker]: "Message cannot start with the system quote marker",
+	[Key.gbLoginRequired]: "Please sign in before sending a message",
+	[Key.gbNicknameMinLength]: "Guest nickname must be at least {min} characters",
+	[Key.gbGuestProfileRequiredDisabled]:
+		"Please fill in your guest profile before sending",
+	[Key.gbGuestProfileRequired]: "Fill in a guest profile or sign in to send",
+	[Key.gbEmailInvalid]: "Invalid email format",
+	[Key.gbLinkProtocolInvalid]: "Website URL must use http or https",
+	[Key.gbLinkInvalid]: "Invalid website URL",
+	[Key.gbSendFailed]: "Failed to send message",
+	[Key.gbEditFailed]: "Failed to edit message. Please try again later.",
+	[Key.gbDeleteFailed]: "Failed to delete message. Please try again later.",
+	[Key.gbLoginInvalidResponse]: "Invalid login response. Please sign in again.",
+	[Key.gbLoginFailed]: "Login failed. Please try again later.",
+	[Key.gbTitle]: "Message Board",
+	[Key.gbOlderAbove]: "{count} earlier messages above",
+	[Key.gbOlderAboveShort]: "{count} messages",
+	[Key.gbRefreshNowAria]: "Refresh messages now",
+	[Key.gbRefreshNowTitle]: "Refresh now",
+	[Key.gbMembers]: "Members",
+	[Key.gbCloseAnnouncement]: "Close announcement",
+	[Key.gbLoadingAria]: "Loading messages",
+	[Key.gbLoadFailedTitle]: "Failed to load guestbook",
+	[Key.gbReload]: "Reload",
+	[Key.gbLoadingOlder]: "Loading earlier messages",
+	[Key.gbLoadOlder]: "Load earlier messages",
+	[Key.gbNoMoreMessages]: "This is the earliest message",
+	[Key.gbEmptyTitle]: "No messages yet",
+	[Key.gbEmptyBody]: "Send the first message to start the conversation.",
+	[Key.gbNewMessagesAria]: "{count} new messages, jump to latest",
+	[Key.gbBackToBottom]: "Back to bottom",
+	[Key.gbOffline]: "Currently offline",
+	[Key.gbRetrySync]: "Retry sync",
+	[Key.gbCloseMembers]: "Close member list",
+	[Key.gbMembersListAria]: "Member list",
+	[Key.gbAdmin]: "Owner",
+	[Key.gbMemberCountAria]: "{count} people",
+	[Key.gbDeleteMessage]: "Delete message",
+	[Key.gbCloseDeleteConfirm]: "Close delete confirmation",
+	[Key.gbDeleteWarning]:
+		"This cannot be undone. The message will also be deleted from the Waline server.",
+	[Key.gbEmojiLoadFailed]:
+		"Failed to load Waline emojis. Please try again later.",
+	[Key.gbEmojiImageTitle]: "emoji",
+	[Key.gbImageTypeUnsupported]:
+		"Only PNG, JPEG, GIF or WebP images are supported",
+	[Key.gbImageTooLarge]: "Image cannot exceed 5 MB",
+	[Key.gbImageTooLargeInline]: "Waline inline images cannot exceed 128 KB",
+	[Key.gbImageUploadFailed]: "Failed to upload image. Please try again later.",
+	[Key.gbComposerReplyTo]: "Reply to @{nick}",
+	[Key.gbCancelQuote]: "Cancel quote",
+	[Key.gbResizeAria]: "Adjust input height",
+	[Key.gbResizeTitle]: "Drag up to enlarge the input box",
+	[Key.gbPlaceholderRequireLogin]: "Sign in to join the conversation",
+	[Key.gbPlaceholder]: "Say something...",
+	[Key.gbComposerAria]: "Message content",
+	[Key.gbRemoveImageAria]: "Remove pending image",
+	[Key.gbRemoveImageTitle]: "Remove image",
+	[Key.gbEmojiAria]: "Choose emoji",
+	[Key.gbUploadImageAria]: "Upload image",
+	[Key.gbCharCount]: "{count}/{max}",
+	[Key.gbAdminRole]: "Admin",
+	[Key.gbLoggedIn]: "Signed in",
+	[Key.gbNotLoggedIn]: "Not signed in",
+	[Key.gbOr]: "or",
+	[Key.gbLoggingIn]: "Signing in",
+	[Key.gbWalineEmojiAria]: "Waline emojis",
+	[Key.gbLoadingEmoji]: "Loading emojis",
+	[Key.gbEmojiPacksAria]: "Emoji packs",
+	[Key.gbInsertEmojiAria]: "Insert {key}",
+	[Key.gbCloseTip]: "Close notice",
+	[Key.gbGuestProfile]: "Guest profile",
+	[Key.gbCloseGuestProfile]: "Close guest profile",
+	[Key.gbNickname]: "Nickname",
+	[Key.gbNicknamePlaceholder]: "At least 2 characters",
+	[Key.gbEmail]: "Email",
+	[Key.gbEmailPlaceholder]: "Used for avatar, not public",
+	[Key.gbLink]: "Website",
+	[Key.gbOptional]: "Optional",
+	[Key.gbSaveProfile]: "Save profile",
+	[Key.gbQuoteNotLoaded]: "Original message not loaded yet",
+	[Key.gbCopyFailed]: "Copy failed. Please check browser clipboard permission.",
+	[Key.gbJumpToQuoteAria]: "Jump to {nick}'s original message",
+	[Key.gbJumpToQuoteTitle]: "Jump to original message",
+	[Key.gbVisitSiteTitle]: "Visit {nick}'s website",
+	[Key.gbPendingReview]: "Under review",
+	[Key.gbEditMessageWithName]: "Edit {nick}'s message",
+	[Key.gbMessageActionsAria]: "Message actions",
+	[Key.gbReplyAria]: "Reply to {nick}",
+	[Key.gbQuoteReply]: "Quote reply",
+	[Key.gbCopied]: "Copied",
+	[Key.gbCopyMessage]: "Copy message",
+	[Key.gbEditMessage]: "Edit message",
+
+	[Key.tagGraphAccessible]:
+		"Tag relation graph, {tags} tags and {links} links in total. Use arrow keys to select a tag, Enter to open.",
+	[Key.tagGraphEmpty]: "No tag relations yet",
+	[Key.tagGraphPreparing]: "Preparing the graph…",
+	[Key.tagGraphFailed]: "Failed to load the graph",
+	[Key.kgDetailTitle]: "Node details",
+	[Key.kgSectionsCount]: "{count} sections",
+	[Key.kgPanelTitle]: "Graph Controls",
+	[Key.kgSectionFilters]: "Filters",
+	[Key.kgSectionGroups]: "Categories",
+	[Key.kgSectionAppearance]: "Appearance",
+	[Key.kgSectionAnimation]: "Animation",
+	[Key.kgTierCategory]: "Categories",
+	[Key.kgTierTag]: "Tags",
+	[Key.kgTierPost]: "Posts",
+	[Key.kgTierHeading]: "Headings",
+	[Key.kgSearch]: "Search nodes…",
+	[Key.kgMinPosts]: "Min. posts",
+	[Key.kgShowCooccurrence]: "Tag co-occurrence links",
+	[Key.kgParticles]: "Flowing particles",
+	[Key.kgPlay]: "Play",
+	[Key.kgPause]: "Pause",
+	[Key.kgResetView]: "Reset view",
+	[Key.kgLayoutMindmap]: "Switch to mind map layout",
+	[Key.kgLayoutForce]: "Switch to force layout",
+	[Key.kgCollapsePanel]: "Collapse controls",
+	[Key.kgExpandPanel]: "Expand controls",
+	[Key.postNavBack]: "Back",
+	[Key.postNavCategory]: "Switch category",
+	[Key.archiveMotto]:
+		"Time never turns back, yet it leaves every road it walked right here.",
+	[Key.collectionsMotto]:
+		"Good tools never shout; they simply bring you closer to what you meant to do.",
+	[Key.aboutMotto]:
+		"Who I am is a question only the things I have written can slowly answer.",
+	[Key.friendsMotto]:
+		"Night lies between one lamp and the next, and that is how they come to see each other.",
+	[Key.sponsorMotto]:
+		"Passion asks for nothing in return, but passion that is seen travels further.",
+	[Key.galleryMotto]: "Only when the shutter falls does time take on a shape.",
+	[Key.rssMotto]: "No need to chase the tide; let it flow to you on its own.",
+	[Key.postsMotto]:
+		"We write things down so the thoughts we once had are not scattered by the wind.",
+	[Key.searchMotto]: "Every answer is hidden in the way the question is asked.",
+	[Key.kgStats]: "{visible} / {total} nodes · {links} links",
+	[Key.kgRelations]: "{count} connections",
+	[Key.kgLoaded]: "Knowledge graph loaded",
+	[Key.switchPinnedAria]: "Switch pinned posts",
+	[Key.switchLatestAria]: "Switch latest posts",
+	[Key.openPostPrefix]: "Open post: ",
+};

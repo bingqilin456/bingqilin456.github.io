@@ -1,0 +1,38 @@
+/* ============================================
+   首页通用分层标题 — HomeStatus / HomePending
+   ============================================ */
+
+.home-page {
+	padding-bottom: 0;
+}
+
+/* 仅首页：最底层底部贴合页脚，去掉全局页脚的顶部间距；
+   离开首页后 .home-page 随 Swup 替换，:has() 不再命中，其余页面不受影响 */
+#main-grid-wrapper:has(.home-page) .site-footer {
+	margin-top: 0;
+}
+
+.home-section-title-wrapper {
+	width: 100%;
+	max-width: 24rem;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.home-section-title-container {
+	text-align: center;
+	padding-top: 1.5rem;
+	padding-bottom: 0.25rem;
+}
+
+.home-section-title {
+	font-size: 1.75rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	color: #000;
+	text-transform: uppercase;
+}
+
+:root.dark .home-section-title {
+	color: #fff;
+}

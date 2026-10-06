@@ -1,0 +1,102 @@
+---
+import HeroContact from "@components/layout/HeroContact.astro";
+import HeroDialogue from "@components/layout/HeroDialogue.astro";
+import HeroMosaic from "@components/layout/HeroMosaic.astro";
+import HeroQuickActions from "@components/layout/HeroQuickActions.astro";
+import { homeConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+const { hero } = homeConfig;
+const dialogueEnabled =
+	hero.dialogue?.enabled !== false && Boolean(hero.dialogue);
+const runtimeConfig = {
+	mosaic: hero.mosaic,
+	rain: {
+		enabled: hero.rain?.enabled ?? true,
+		intensity: hero.rain?.intensity ?? 0.6,
+		color: hero.rain?.color ?? "",
+	},
+};
+---
+
+<section
+	class="home-hero"
+	id="home-hero"
+	data-home-hero
+	data-hero-config={JSON.stringify(runtimeConfig)}
+>
+	<HeroMosaic
+		desktopImage={hero.backgroundImage}
+		mobileImage={hero.backgroundImage}
+		config={hero.mosaic}
+	/>
+
+	<div class="home-hero__shade" aria-hidden="true"></div>
+
+	<header class="home-hero__identity" data-hero-title>
+		<svg class="home-hero__filter" aria-hidden="true" focusable="false">
+			<defs>
+				<filter
+					id="home-hero-gooey"
+					x="-20%"
+					y="-30%"
+					width="140%"
+					height="160%"
+					color-interpolation-filters="sRGB"
+				>
+					<feMorphology operator="dilate" radius="0.8" in="SourceGraphic" result="dilate" />
+					<feGaussianBlur in="dilate" stdDeviation="2.2" result="blur" />
+					<feColorMatrix
+						in="blur"
+						type="matrix"
+						values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
+						result="goo"
+					/>
+					<feComposite in="SourceGraphic" in2="goo" operator="atop" />
+				</filter>
+			</defs>
+		</svg>
+		<h1 class="home-hero__title">
+			<span>{homeConfig.displayName || homeConfig.name}</span>
+				<span class="sr-only">{i18n(I18nKey.techBlogSuffix)}</span>
+		</h1>
+		{homeConfig.occupation && (
+			<p class="home-hero__occupation">{homeConfig.occupation}</p>
+		)}
+	</header>
+
+	{hero.contact && <HeroContact contact={hero.contact} />}
+
+	<HeroQuickActions />
+
+	{dialogueEnabled && hero.dialogue && (
+		<HeroDialogue
+			config={hero.dialogue}
+			sticker={hero.sticker}
+			fallbackHostName={homeConfig.displayName || homeConfig.name}
+		/>
+	)}
+
+	<canvas class="home-hero__rain" data-hero-rain aria-hidden="true"></canvas>
+</section>
+
+<script>
+	import { mountHomeHero } from "@/utils/home-hero-controller";
+	import { bindHomeLayer } from "@/utils/home-lifecycle";
+
+	let cleanupHomeHero: (() => void) | null = null;
+
+	// 挂载时机与去重全部交给 bindHomeLayer：顶层自启和 astro:page-load 谁先谁后都只挂一次，
+	// 否则第二次挂载会把第一次那条 document.fonts.ready 回调放进来，contact 被拆成两套字符节点
+	bindHomeLayer("hero", {
+		boot: () => {
+			cleanupHomeHero?.();
+			cleanupHomeHero = mountHomeHero();
+		},
+		teardown: () => {
+			cleanupHomeHero?.();
+			cleanupHomeHero = null;
+		},
+	});
+</script>

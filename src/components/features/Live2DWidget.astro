@@ -1,0 +1,180 @@
+---
+import Icon from "@/components/common/Icon.astro";
+import MessageBox from "@/components/common/PioMessageBox.astro";
+import type { Live2DModelConfig } from "@/types/config";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	config: Live2DModelConfig;
+}
+
+const { config } = Astro.props;
+
+const position = config.position ?? {
+	corner: "bottom-right" as const,
+	offsetX: 20,
+	offsetY: 20,
+};
+const size = config.size ?? { width: 280, height: 250 };
+const corner = position.corner ?? "bottom-right";
+
+// 运行期配置走 data 属性下发：module script 拿不到服务端变量，
+// 而 define:vars 只对 is:inline 脚本有效
+const runtimeConfig = JSON.stringify({
+	...config,
+	modelPath: url(config.model.path),
+});
+---
+
+<div
+	id="live2d-widget"
+	class="live2d-widget live2d-initial"
+	data-config={runtimeConfig}
+	style={`
+    width: ${size.width}px;
+    height: ${size.height}px;
+    ${corner.includes("right") ? "right" : "left"}: ${position.offsetX ?? 20}px;
+    ${corner.includes("top") ? "top" : "bottom"}: ${position.offsetY ?? 20}px;
+  `}
+>
+	<canvas
+		id="live2d-canvas"
+		class="live2d-canvas"
+		width={size.width}
+		height={size.height}
+	></canvas>
+
+	<!-- 加载 / 失败态：进度由 live2d-controller 驱动 -->
+	<div class="live2d-loader" id="live2d-loader" hidden>
+		<div class="live2d-loader-ring" id="live2d-loader-bar">
+			<svg viewBox="0 0 48 48" aria-hidden="true">
+				<circle class="live2d-loader-track" cx="24" cy="24" r="20"></circle>
+				<circle class="live2d-loader-value" cx="24" cy="24" r="20"></circle>
+			</svg>
+			<span class="live2d-loader-pct" id="live2d-loader-pct"></span>
+		</div>
+		<p class="live2d-loader-label" id="live2d-loader-label">准备加载</p>
+		<button class="live2d-retry" id="live2d-retry" type="button" hidden>
+			重试
+		</button>
+	</div>
+
+	<!-- 动作模组面板：分组与动作在模型加载完成后从 definitions 动态生成 -->
+	<div
+		class="live2d-motion-panel"
+		id="live2d-motion-panel"
+		aria-label="动作模组"
+	>
+		<div class="live2d-panel-header">
+			<span class="live2d-panel-title">动作模组</span>
+			<div class="live2d-panel-actions">
+				<button
+					class="live2d-panel-btn"
+					id="live2d-reset-btn"
+					type="button"
+					title="重置"
+					aria-label="重置已开启的动作"
+				>
+					<Icon name="material-symbols:restart-alt" class="text-base" />
+				</button>
+				<button
+					class="live2d-panel-btn"
+					id="live2d-panel-close-btn"
+					type="button"
+					title="关闭"
+					aria-label="关闭动作面板"
+				>
+					<Icon name="material-symbols:close-rounded" class="text-base" />
+				</button>
+			</div>
+		</div>
+		<div class="live2d-panel-body">
+			<div
+				class="live2d-motion-tabs"
+				id="live2d-motion-tabs"
+				role="group"
+				aria-label="动作分组"
+			>
+			</div>
+			<div class="live2d-motion-list" id="live2d-motion-list">
+				<span class="live2d-motion-empty">等待模型加载…</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="live2d-toolbar" role="toolbar" aria-label="看板娘">
+		<button
+			class="live2d-tool-btn"
+			id="live2d-motion-btn"
+			type="button"
+			title="动作模组"
+			aria-label="选择动作模组"
+			aria-expanded="false"
+			aria-controls="live2d-motion-panel"
+		>
+			<Icon name="material-symbols:auto-awesome" class="text-xl" />
+		</button>
+		{
+			config.author && (
+				<button
+					class="live2d-tool-btn active"
+					id="live2d-info-btn"
+					type="button"
+					title="作者信息"
+					aria-label="切换作者信息"
+					aria-pressed="true"
+				>
+					<Icon name="material-symbols:info-outline-rounded" class="text-xl" />
+				</button>
+			)
+		}
+		<button
+			class="live2d-tool-btn"
+			id="live2d-close-btn"
+			type="button"
+			title="关闭"
+			aria-label="关闭看板娘"
+		>
+			<Icon name="material-symbols:close-rounded" class="text-xl" />
+		</button>
+	</div>
+
+	{
+		config.author && (
+			<div class="live2d-author" id="live2d-author">
+				<span>by </span>
+				{config.author.url ? (
+					<a href={config.author.url} target="_blank" rel="noopener noreferrer">
+						{config.author.name}
+					</a>
+				) : (
+					<span>{config.author.name}</span>
+				)}
+			</div>
+		)
+	}
+</div>
+
+<div
+	class="live2d-trigger"
+	id="live2d-trigger"
+	role="button"
+	tabindex="0"
+	title="显示看板娘"
+	aria-label="显示看板娘"
+>
+	<div class="live2d-trigger-inner">
+		<Icon name="fa7-regular:address-card" class="text-lg" />
+		<span class="live2d-trigger-text">看板娘</span>
+	</div>
+</div>
+
+<MessageBox />
+
+<script>
+	import { initLive2DWidget } from "@/utils/live2d-controller";
+
+	const widget = document.getElementById("live2d-widget");
+	const raw = widget?.dataset.config;
+	if (raw) initLive2DWidget(raw);
+</script>

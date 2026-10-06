@@ -1,0 +1,168 @@
+/* ==========================================================================
+   Page Transition Animations (Swup) & Global Animations
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Keyframes
+   -------------------------------------------------------------------------- */
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   2. Swup Page Transition — Blur Fade
+   -------------------------------------------------------------------------- */
+
+/* 离开动画：淡出 + 上移（移除 filter:blur 以避免整页高斯模糊运算导致掉帧） */
+@keyframes blur-fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+/* 进入动画：淡入 + 下移 */
+@keyframes blur-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-out-only {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes fade-in-only {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Swup 离开阶段：is-leaving 在 animatePageOut 时添加，content:replace 时移除 */
+html.is-leaving .transition-swup-main {
+    animation: blur-fade-out 180ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Swup 进入阶段：is-rendering 在 content:replace 后添加，animatePageIn 完成时移除 */
+html.is-rendering .transition-swup-main {
+    animation: blur-fade-in 280ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 页内 fixed 元素（首页被 ScrollTrigger pin 的 hero、文章页右侧大纲面板）在容器
+   出现非 none 的 transform 时会改以容器为 containing block，过渡瞬间跳位/飞出。
+   因此仅在进出这些页面（DOM 含对应标记）时退化为纯 opacity 过渡，其余页面保留位移 */
+html.is-leaving:has(.home-hero) .transition-swup-main,
+html.is-leaving:has(.article-toc-panel) .transition-swup-main {
+    animation-name: fade-out-only;
+}
+
+html.is-rendering:has(.home-hero) .transition-swup-main,
+html.is-rendering:has(.article-toc-panel) .transition-swup-main {
+    animation-name: fade-in-only;
+}
+
+/* 无障碍：减少动画 */
+@media (prefers-reduced-motion: reduce) {
+    html.is-leaving .transition-swup-main,
+    html.is-rendering .transition-swup-main,
+    html.is-leaving:has(.home-hero) .transition-swup-main,
+    html.is-rendering:has(.home-hero) .transition-swup-main,
+    html.is-leaving:has(.article-toc-panel) .transition-swup-main,
+    html.is-rendering:has(.article-toc-panel) .transition-swup-main {
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   3. Onload Animations
+   -------------------------------------------------------------------------- */
+
+.onload-animation {
+    opacity: 1;
+    animation: fade-in-up 400ms cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+/* 渐进式动画延迟 */
+.onload-animation:nth-child(1) { animation-delay: 50ms; }
+.onload-animation:nth-child(2) { animation-delay: 100ms; }
+.onload-animation:nth-child(3) { animation-delay: 150ms; }
+.onload-animation:nth-child(4) { animation-delay: 200ms; }
+.onload-animation:nth-child(5) { animation-delay: 250ms; }
+
+/* 首页 hero 被 GSAP 以 fixed 钉住，且有自己的入场编排：
+   fade-in-up 的 translateY 会让 #content-wrapper 变成 fixed 的 containing block
+   导致 hero 回弹跳动，其 opacity:0 起步又与 swup 进入动画叠成双重淡入闪烁 */
+#content-wrapper:has(> .home-page) {
+    animation: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. Navigation Progress Bar
+   -------------------------------------------------------------------------- */
+
+#progress-bar {
+    --progress-height: 3px;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--progress-height);
+    z-index: 9999;
+    pointer-events: none;
+    background: var(--primary);
+    box-shadow: 0 0 8px color-mix(in oklch, var(--primary) 60%, transparent);
+    opacity: 0;
+    transform-origin: left center;
+    transform: scaleX(0);
+}
+
+/* 进度条的增长/收尾动画由 src/utils/progress-bar.ts 用 WAAPI 驱动，
+   不再依赖 CSS 类，这里只保留静态基础样式 */
+
+/* --------------------------------------------------------------------------
+   5. Reduced Motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .onload-animation {
+        opacity: 1;
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   6. Mobile: disable all entrance animations
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .onload-animation {
+        opacity: 1;
+        animation: none;
+    }
+}

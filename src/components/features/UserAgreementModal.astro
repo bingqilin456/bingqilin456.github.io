@@ -1,0 +1,78 @@
+---
+import { getEntry, render } from "astro:content";
+import Markdown from "@components/common/Markdown.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+const agreementPost = await getEntry("spec", "user-agreement");
+let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
+if (agreementPost) {
+	const rendered = await render(agreementPost);
+	Content = rendered.Content;
+}
+---
+
+<dialog id="user-agreement-modal" class="privacy-modal">
+	<div class="privacy-overlay" data-close-user-agreement></div>
+	<div class="privacy-panel">
+		<div class="privacy-header">
+			<h2 class="privacy-title">{i18n(I18nKey.userAgreement)}</h2>
+			<button class="privacy-close" data-close-user-agreement aria-label={i18n(I18nKey.close)}>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="18" y1="6" x2="6" y2="18" />
+					<line x1="6" y1="6" x2="18" y2="18" />
+				</svg>
+			</button>
+		</div>
+		<div class="privacy-body">
+			{Content && (
+				<Markdown class="">
+					<Content />
+				</Markdown>
+			)}
+		</div>
+		<div class="privacy-footer">
+			<button class="privacy-confirm-btn" data-close-user-agreement>{i18n(I18nKey.gotIt)}</button>
+		</div>
+	</div>
+</dialog>
+
+<script>
+	import { definePersistentIsland } from "@/utils/swup-lifecycle";
+
+	// 同 PrivacyModal：容器外组件，DOM 与监听跨导航持久存在，只需初始化一次
+	definePersistentIsland("user-agreement-modal", () => {
+		const modal = document.getElementById("user-agreement-modal") as HTMLDialogElement | null;
+		if (!modal) return;
+
+		const openModal = () => {
+			modal.showModal();
+			document.body.style.overflow = "hidden";
+		};
+
+		const closeModal = () => {
+			modal.close();
+			document.body.style.overflow = "";
+		};
+
+		modal.querySelectorAll("[data-close-user-agreement]").forEach((element) => {
+			element.addEventListener("click", closeModal);
+		});
+
+		modal.addEventListener("click", (event) => {
+			if (event.target === modal) closeModal();
+		});
+
+		modal.addEventListener("close", () => {
+			document.body.style.overflow = "";
+		});
+
+		modal.addEventListener("cancel", (event) => {
+			event.preventDefault();
+			closeModal();
+		});
+
+		window.addEventListener("user-agreement:open", openModal);
+		window.openUserAgreementModal = openModal;
+	});
+</script>

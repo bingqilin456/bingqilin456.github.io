@@ -1,0 +1,277 @@
+---
+import Icon from "@components/common/Icon.astro";
+import FooterSignature from "@components/layout/FooterSignature.astro";
+import { footerConfig, homeConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { getSortedPosts } from "@/utils/content-utils";
+import { url } from "@/utils/url-utils";
+
+const currentYear = new Date().getFullYear();
+const siteStartDate = siteConfig.siteStartDate || "";
+const { socialLinks, beian, poweredBy } = footerConfig;
+const bioText = Array.isArray(homeConfig.bio)
+	? homeConfig.bio[0] || ""
+	: homeConfig.bio || "";
+
+function getSiteStartTimestamp(value: string): number | null {
+	if (!value) return null;
+
+	const normalizedValue = /^\d{4}-\d{2}-\d{2}$/.test(value)
+		? `${value}T00:00:00+08:00`
+		: value;
+	const timestamp = Date.parse(normalizedValue);
+
+	return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+const startTimestamp = getSiteStartTimestamp(siteStartDate);
+const initialRunningDays =
+	startTimestamp === null
+		? null
+		: Math.max(0, Math.floor((Date.now() - startTimestamp) / 86_400_000));
+
+const posts = await getSortedPosts();
+const latestPost = posts.reduce((latest, post) => {
+	if (!latest) return post;
+	return post.data.published > latest.data.published ? post : latest;
+}, posts[0]);
+const lastPostDate = latestPost
+	? latestPost.data.published.toISOString()
+	: null;
+
+const runningTimeText = i18n(I18nKey.footerRunningTime);
+const lastUpdateText = i18n(I18nKey.footerLastUpdate);
+const todayText = i18n(I18nKey.today);
+
+function formatInitialRunningTime(
+	template: string,
+	elapsedSeconds: number,
+): string {
+	const days = Math.floor(elapsedSeconds / 86_400);
+	const hours = Math.floor((elapsedSeconds % 86_400) / 3_600);
+	const minutes = Math.floor((elapsedSeconds % 3_600) / 60);
+	const seconds = elapsedSeconds % 60;
+
+	return template
+		.replace("{days}", days.toString())
+		.replace("{hours}", hours.toString())
+		.replace("{minutes}", minutes.toString())
+		.replace("{seconds}", seconds.toString());
+}
+
+const initialRunningTime =
+	startTimestamp === null
+		? ""
+		: formatInitialRunningTime(
+				runningTimeText,
+				Math.max(0, Math.floor((Date.now() - startTimestamp) / 1_000)),
+			);
+
+function getInitialLastUpdateText(value: string | null): string | null {
+	if (!value) return null;
+
+	const timestamp = Date.parse(value);
+	if (Number.isNaN(timestamp)) return null;
+
+	const days = Math.max(0, Math.floor((Date.now() - timestamp) / 86_400_000));
+	return days === 0
+		? todayText
+		: lastUpdateText.replace("{days}", days.toString());
+}
+
+const initialLastUpdateText = getInitialLastUpdateText(lastPostDate);
+
+// mailto:/tel: 链接不在新标签打开
+const opensInNewTab = (href: string) => !/^(mailto:|tel:)/i.test(href);
+---
+
+<footer class="footer site-footer" data-site-footer>
+	<div class="site-footer__inner">
+		<div class="site-footer__primary">
+			<section class="site-footer__brand" aria-label={homeConfig.name}>
+				<div class="site-footer__brand-copy">
+					<FooterSignature />
+					{bioText && <p class="site-footer__tagline">{bioText}</p>}
+				</div>
+			</section>
+
+			<nav class="site-footer__contact" aria-label={i18n(I18nKey.contactMethods)}>
+				<p class="site-footer__eyebrow">{i18n(I18nKey.contactMethods)}</p>
+				<ul class="site-footer__social-list" role="list">
+					{socialLinks.map((link) => (
+						<li>
+							<a
+								class="site-footer__social-link"
+								href={link.href}
+								target={opensInNewTab(link.href) ? "_blank" : undefined}
+								rel={opensInNewTab(link.href) ? "noreferrer" : undefined}
+								aria-label={link.label}
+								data-tooltip={link.label}
+							>
+								<Icon name={link.icon} is:inline aria-hidden="true" />
+							</a>
+						</li>
+					))}
+				</ul>
+				<div class="site-footer__utility-links">
+					<a href={url("sitemap-index.xml")} target="_blank" rel="noreferrer">Sitemap</a>
+					<span aria-hidden="true">/</span>
+					<a href={url("rss/")} target="_blank" rel="noreferrer">RSS</a>
+					<span aria-hidden="true">/</span>
+					<button
+						class="site-footer__utility-button"
+						onclick="window.openPrivacyModal && window.openPrivacyModal()"
+						type="button"
+					>
+						{i18n(I18nKey.privacyPolicy)}
+					</button>
+					<span aria-hidden="true">/</span>
+					<button
+						class="site-footer__utility-button"
+						onclick="window.openUserAgreementModal && window.openUserAgreementModal()"
+						type="button"
+					>
+						{i18n(I18nKey.userAgreement)}
+					</button>
+				</div>
+			</nav>
+		</div>
+
+		<div class="site-footer__lower">
+			<div class="site-footer__legal">
+				<div class="site-footer__copyright-row">
+					<p class="site-footer__copyright">&copy; {currentYear} {homeConfig.name}</p>
+					{poweredBy.map((item) => (
+						<>
+							<span class="site-footer__copyright-divider" aria-hidden="true">·</span>
+							<span class="site-footer__powered-by">
+								<span>{item.label}</span>
+								<a href={item.href} target="_blank" rel="noreferrer">{item.name}</a>
+							</span>
+						</>
+					))}
+				</div>
+				{(beian.icp || beian.police) && (
+					<div class="site-footer__beian">
+						{beian.icp && (
+							<a href={beian.icpUrl} target="_blank" rel="noreferrer">{beian.icp}</a>
+						)}
+						{beian.icp && beian.police && <span aria-hidden="true">/</span>}
+						{beian.police && (
+							<a
+								class="site-footer__police-link"
+								href={beian.policeUrl}
+								target="_blank"
+								rel="noreferrer"
+							>
+								<img src={beian.policeIcon} alt={i18n(I18nKey.policeBeianAlt)} />
+								<span>{beian.police}</span>
+							</a>
+						)}
+					</div>
+				)}
+			</div>
+
+			<div class="site-footer__status">
+				{initialRunningDays !== null && (
+					<p class="site-footer__status-line">
+						<Icon name="material-symbols:calendar-clock-outline" is:inline aria-hidden="true" />
+						<span data-footer-running-time data-template={runningTimeText}>{initialRunningTime}</span>
+					</p>
+				)}
+				{initialLastUpdateText && (
+					<p class="site-footer__status-line">
+						<Icon name="mingcute:heartbeat-line" is:inline aria-hidden="true" />
+						<span data-footer-last-update data-template={lastUpdateText} data-today={todayText}>{initialLastUpdateText}</span>
+					</p>
+				)}
+			</div>
+		</div>
+	</div>
+</footer>
+
+<script is:inline define:vars={{ siteStartDate, lastPostDate, runningTimeText, lastUpdateText, todayText }}>
+	const footer = document.querySelector("[data-site-footer]");
+
+	function parseSiteStartTimestamp(value) {
+		if (!value) return null;
+
+		const normalizedValue = /^\d{4}-\d{2}-\d{2}$/.test(value)
+			? `${value}T00:00:00+08:00`
+			: value;
+		const timestamp = Date.parse(normalizedValue);
+
+		return Number.isNaN(timestamp) ? null : timestamp;
+	}
+
+	function formatRunningTime(template, elapsedSeconds) {
+		const days = Math.floor(elapsedSeconds / 86_400);
+		const hours = Math.floor((elapsedSeconds % 86_400) / 3_600);
+		const minutes = Math.floor((elapsedSeconds % 3_600) / 60);
+		const seconds = elapsedSeconds % 60;
+
+		return template
+			.replace("{days}", days.toString())
+			.replace("{hours}", hours.toString())
+			.replace("{minutes}", minutes.toString())
+			.replace("{seconds}", seconds.toString());
+	}
+
+	if (footer instanceof HTMLElement) {
+		const runningTimeElement = footer.querySelector("[data-footer-running-time]");
+		const lastUpdateElement = footer.querySelector("[data-footer-last-update]");
+		const startTimestamp = parseSiteStartTimestamp(siteStartDate);
+		const lastPostTimestamp = lastPostDate ? Date.parse(lastPostDate) : Number.NaN;
+
+		function updateFooterStats() {
+			const now = Date.now();
+
+			if (runningTimeElement && startTimestamp !== null) {
+				const template = runningTimeElement.dataset.template || runningTimeText;
+				const elapsedSeconds = Math.max(0, Math.floor((now - startTimestamp) / 1_000));
+				runningTimeElement.textContent = formatRunningTime(template, elapsedSeconds);
+			}
+
+			if (lastUpdateElement && !Number.isNaN(lastPostTimestamp)) {
+				const daysSinceLastUpdate = Math.max(
+					0,
+					Math.floor((now - lastPostTimestamp) / 86_400_000),
+				);
+				const template = lastUpdateElement.dataset.template || lastUpdateText;
+				const todayLabel = lastUpdateElement.dataset.today || todayText;
+
+				lastUpdateElement.textContent =
+					daysSinceLastUpdate === 0
+						? todayLabel
+						: template.replace("{days}", daysSinceLastUpdate.toString());
+			}
+		}
+
+		function initSignature() {
+			const signature = footer.querySelector("[data-footer-signature]");
+			const reducedMotion = window.matchMedia(
+				"(prefers-reduced-motion: reduce)",
+			).matches;
+
+			if (!signature || reducedMotion || !("IntersectionObserver" in window)) return;
+
+			footer.classList.add("is-signature-pending");
+			const observer = new IntersectionObserver(
+				(entries) => {
+					if (!entries.some((entry) => entry.isIntersecting)) return;
+
+					footer.classList.add("is-signature-drawn");
+					observer.disconnect();
+				},
+				{ threshold: 0.35 },
+			);
+
+			observer.observe(signature);
+		}
+
+		updateFooterStats();
+		window.setInterval(updateFooterStats, 1_000);
+		initSignature();
+	}
+</script>

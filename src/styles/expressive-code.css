@@ -1,0 +1,208 @@
+.expressive-code {
+  --code-block-bg: var(--codeblock-bg);
+  --code-block-topbar-bg: var(--codeblock-topbar-bg);
+  --code-block-border: var(--codeblock-border);
+  --code-block-accent: #00A29B;
+  --code-window-control-close: #ff5f57;
+  --code-window-control-minimize: #ffbd2e;
+  --code-window-control-zoom: #28c840;
+
+  .frame {
+    @apply shadow-none!;
+    background: var(--code-block-bg) !important;
+    border-color: var(--code-block-border) !important;
+  }
+
+  .frame pre,
+  .frame code,
+  .frame .code,
+  .frame .ec-code,
+  .frame .ec-code__inner {
+    background: var(--code-block-bg) !important;
+  }
+
+  .frame pre {
+    border-color: var(--code-block-border) !important;
+  }
+
+  .frame.is-terminal .header {
+    background: var(--code-block-topbar-bg) !important;
+    border-color: var(--code-block-border) !important;
+  }
+
+  /* 使用与 iOS/macOS 窗口控制一致的红、黄、绿圆点。 */
+  .frame.is-terminal .header::before {
+    width: 2.1rem;
+    height: 0.56rem;
+    background:
+      radial-gradient(circle at 0.28rem 50%, var(--code-window-control-close) 0 0.28rem, transparent 0.3rem),
+      radial-gradient(circle at 1.05rem 50%, var(--code-window-control-minimize) 0 0.28rem, transparent 0.3rem),
+      radial-gradient(circle at 1.82rem 50%, var(--code-window-control-zoom) 0 0.28rem, transparent 0.3rem) !important;
+    opacity: 1 !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .frame.is-terminal .header::after {
+    border-bottom-color: var(--code-block-border) !important;
+  }
+
+  .title {
+    font-family:
+      "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco,
+      Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  /* Language Badge 样式适配主题色和亮暗色 */
+  /* 覆盖 expressive-code-language-badge 插件的默认样式 */
+  [data-language]::before {
+    color: var(--code-block-accent) !important;
+    background: var(--btn-regular-bg) !important;
+  }
+
+  /* 复制按钮与语言徽章使用同一青色强调色。 */
+  .frame .copy button {
+    border: 1px solid var(--code-block-accent) !important;
+    background: var(--code-block-accent) !important;
+  }
+
+  .frame .copy button > div {
+    background: transparent !important;
+  }
+
+  .frame .copy button::before {
+    border-color: var(--code-block-accent) !important;
+    opacity: 1 !important;
+  }
+
+  .frame .copy button::after {
+    background-color: #000 !important;
+  }
+
+  .frame .copy button:hover {
+    filter: brightness(1.08);
+  }
+
+  .frame .copy button:active {
+    filter: brightness(0.92);
+  }
+
+  .frame .copy .feedback {
+    --tooltip-bg: var(--code-block-accent);
+    color: #000;
+  }
+
+  /* 折叠按钮样式适配主题色和亮暗色 */
+  /* 只针对底部的toggle按钮，不改header-toggle */
+  .ec-collapse__toggle {
+    color: var(--btn-content) !important;
+    background-color: var(--btn-regular-bg) !important;
+    border-color: var(--line-color) !important;
+    transition:
+      opacity var(--duration-normal) var(--ease-standard),
+      background-color var(--duration-normal) var(--ease-standard) !important;
+
+    &:hover {
+      background-color: var(--btn-regular-bg-hover) !important;
+    }
+
+    &:active {
+      background-color: var(--btn-regular-bg-active) !important;
+    }
+  }
+
+  /* 收起态：截断从外层容器移到 pre 自身（插件把带边框的 frame 包在被裁切的
+     容器里，overflow 会把 pre 的底部边框一起裁掉，看起来像断开）。
+     pre 自己裁切后底部边框始终可见，再在其下追加一层独立的 "•••" 指示层，
+     不遮挡任何内容；悬停时 "•••" 原地变为「查看更多」，点击由下方透明的
+     toggle 按钮承接。 */
+  .ec-collapse--collapsed .ec-collapse__content {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .ec-collapse--collapsed .ec-collapse__gradient {
+    display: none;
+  }
+
+  /* 12 行整数倍截断（行高 1.5rem），避免出现被切一半的残行；
+     下角改直角让左右边框垂直延伸，与下方指示层的边框连续（层自身负责底部圆角） */
+  .ec-collapse--collapsed .frame pre {
+    max-height: calc(12 * 1.5rem);
+    overflow: hidden;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .ec-collapse--collapsed .frame::after {
+    content: "•••";
+    display: block;
+    height: 2.75rem;
+    text-align: center;
+    color: var(--code-block-accent);
+    font-size: 1rem;
+    line-height: 2.75rem;
+    letter-spacing: 0.5rem;
+    text-indent: 0.5rem;
+    border: 1px solid var(--codeblock-border);
+    border-top: none;
+    border-radius: 0 0 0.75rem 0.75rem;
+    transition: color var(--duration-normal) var(--ease-standard);
+  }
+
+  /* 悬停时 "•••" 原地变为「查看更多」 */
+  .ec-collapse--collapsed:hover .frame::after {
+    content: "查看更多";
+    font-size: 0.8rem;
+    letter-spacing: 0.15rem;
+    text-indent: 0.15rem;
+  }
+
+  .ec-collapse--collapsed .ec-collapse__toggle {
+    opacity: 0;
+  }
+
+  /* 键盘聚焦时显示按钮本体（胶囊样式），鼠标路径走 "•••" → 「查看更多」 */
+  .ec-collapse--collapsed .ec-collapse__toggle:focus-visible {
+    opacity: 1;
+  }
+}
+
+/* Tab 代码块（rehype-code-group）：保留插件结构，仅适配本站主题变量。 */
+.rehype-code-group {
+	margin: 1rem 0;
+}
+
+.rehype-code-group .rcg-tab-container {
+	flex-wrap: wrap;
+	border-bottom-color: var(--line-divider);
+}
+
+.rehype-code-group .rcg-tab {
+	color: var(--btn-content);
+	opacity: var(--opacity-80);
+	transition:
+		color var(--duration-normal) var(--ease-standard),
+		opacity var(--duration-normal) var(--ease-standard);
+}
+
+.rehype-code-group .rcg-tab:hover,
+.rehype-code-group .rcg-tab.active {
+	color: var(--primary);
+	opacity: var(--opacity-100);
+}
+
+.rehype-code-group .rcg-tab.active {
+	border-bottom-color: var(--primary);
+}
+
+.rehype-code-group .rcg-tab:focus-visible {
+	border-radius: 0.25rem;
+	outline: 2px solid var(--primary);
+	outline-offset: -2px;
+}
+
+.rehype-code-group .rcg-block > .expressive-code {
+	margin: 0 !important;
+}
+

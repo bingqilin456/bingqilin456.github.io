@@ -1,0 +1,307 @@
+@reference "tailwindcss";
+
+/* 文章详情整列加宽到 55rem（880px），与评论对话框（wl-panel）同宽；
+   #post-container 用 calc 补回自身 px-3 内边距。
+   这些类仅文章详情使用，about 等页面不受影响。
+   用 width 而非 max-width：组件上的 max-w-none!（@layer utilities 内的 !important）
+   按 cascade 规则会压过未分层的 !important 声明，但拦不住普通 width。 */
+.post-hero,
+.post-intro-card,
+#post-cover,
+#post-container,
+.post-pager-row {
+  width: min(55rem, 100%);
+  margin-inline: auto;
+}
+
+#post-container {
+  width: min(calc(55rem + 1.5rem), 100%);
+}
+
+.custom-md {
+  overflow-wrap: break-word;
+
+  /* 暗色模式加粗文字色（青色） */
+  --md-heading-accent: oklch(0.72 0.13 210);
+  /* 斜体波浪线（紫色） */
+  --md-italic-wavy: oklch(0.6 0.15 285);
+  /* 删除线（红色） */
+  --md-del-line: oklch(0.58 0.21 27);
+
+  body.sticky-navbar & {
+    [id] {
+      scroll-margin-top: 5.5rem;
+    }
+  }
+
+  /* 一至六级标题：不做额外装饰，跟随 prose 默认样式 */
+
+  :root.dark & {
+    --md-heading-accent: oklch(0.8 0.11 210);
+    --md-italic-wavy: oklch(0.75 0.12 285);
+    --md-del-line: oklch(0.7 0.19 25);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    .anchor {
+      @apply transition! -m-0.5! ml-[0.2ch]! p-0.5! select-none! opacity-0! no-underline!;
+
+      .anchor-icon {
+        @apply mx-[0.45ch]!;
+      }
+    }
+
+    &:hover {
+      .anchor {
+        @apply opacity-100!;
+      }
+    }
+  }
+
+  a:not(.no-styling) {
+    @apply relative bg-none font-medium text-(--link-color) underline decoration-(--link-color) decoration-1 decoration-dashed underline-offset-4;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    word-break: break-word;
+
+    &:hover,
+    &:active {
+      @apply decoration-transparent;
+      background: var(--btn-plain-bg-hover);
+      border-bottom: 1px dashed var(--link-color);
+      text-decoration: none;
+    }
+  }
+
+  strong,
+  b {
+    @apply font-bold text-(--strong-color);
+
+    /* 加粗仅深色模式用青色，浅色模式保持默认黑色 */
+    :root.dark & {
+      color: var(--md-heading-accent);
+    }
+  }
+
+  /* 斜体：保留倾斜 + 紫色波浪下划线 */
+  em,
+  i {
+    text-decoration: underline wavy;
+    text-decoration-color: var(--md-italic-wavy);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+  }
+
+  /* 删除线：红色删除线（文字颜色不变） */
+  del,
+  s {
+    text-decoration: line-through;
+    text-decoration-color: var(--md-del-line);
+    text-decoration-thickness: 2px;
+  }
+
+  code {
+    @apply bg-(--inline-code-bg) text-(--inline-code-color) px-1 py-0.5 rounded-md overflow-hidden;
+
+    font-family:
+      "JetBrains Mono Variable",
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      Liberation Mono,
+      Courier New,
+      monospace;
+
+    &:before {
+      content: none;
+    }
+
+    &:after {
+      content: none;
+    }
+
+    counter-reset: line;
+
+    span.line {
+      &:before {
+        @apply text-white/25 mr-4 w-4 inline-block;
+        content: counter(line);
+        counter-increment: line;
+        direction: rtl;
+      }
+
+      &:last-child:empty,
+      &:last-child:has(> span:empty:only-child) {
+        display: none;
+      }
+    }
+  }
+
+  .expressive-code {
+    @apply my-4;
+  }
+
+  pre:not(.expressive-code *) {
+    @apply my-4 overflow-x-auto p-4;
+    background: var(--codeblock-bg) !important;
+    border: 1px solid var(--codeblock-border) !important;
+    border-radius: var(--radius-large);
+  }
+
+  pre:not(.expressive-code *) > code {
+    display: block;
+    min-width: max-content;
+    padding: 0;
+    overflow: visible;
+    color: var(--inline-code-color);
+    background: transparent !important;
+    border-radius: 0;
+  }
+
+  ul,
+  ol {
+    li::marker {
+      @apply text-(--primary);
+    }
+  }
+
+  blockquote {
+    @apply not-italic border-transparent relative;
+    font-weight: inherit;
+
+    &:before {
+      @apply content-[''] absolute -left-1 block transition bg-(--btn-regular-bg) h-full w-1 rounded-full;
+    }
+
+    /* Remove the double quotes from default styles */
+    p:before,
+    p:after {
+      @apply content-none;
+    }
+  }
+
+  .katex-display-container {
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+
+  .horizontal-scroll-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .image-grid {
+    @apply items-stretch;
+    
+    center {
+      @apply h-full w-full;
+      
+      figure {
+        @apply flex flex-col h-full w-full m-0 p-0;
+        
+        img {
+          @apply object-cover w-full grow rounded-xl m-0;
+          /* 使图片自动填满所在网格高度（自适应裁剪居中，不拉伸变形） */
+          height: 100%;
+        }
+        
+        figcaption {
+          @apply mt-2 mb-0;
+        }
+      }
+    }
+  }
+}
+
+
+.custom-md {
+  table {
+    @apply my-4;
+    min-width: 100%;
+    width: max-content;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: calc(var(--radius-large) - 0.5rem);
+    overflow: hidden;
+  }
+
+  .horizontal-scroll-container {
+    @apply my-4;
+    border-radius: calc(var(--radius-large) - 0.5rem);
+  }
+
+  .horizontal-scroll-container > table {
+    @apply my-0;
+  }
+
+  th,
+  td {
+    @apply px-3 py-2 text-left;
+    min-width: 120px;
+    border: none;
+    word-break: break-word;
+
+    &:not(:last-child) {
+      border-right: 1px solid var(--line-color);
+    }
+  }
+
+  th {
+    @apply bg-(--btn-regular-bg) font-semibold text-(--btn-content) border-b border-(--line-color);
+  }
+
+  td {
+    @apply bg-(--card-bg);
+  }
+
+  tr:nth-child(even) td {
+    @apply bg-(--btn-plain-bg-active);
+  }
+}
+
+/* Markdown 内容黑白边框样式 */
+.markdown-bordered {
+  padding: 0;
+  margin: 1rem 0;
+}
+
+/* 移动端优化: 添加内边距 */
+@media (max-width: 768px) {
+  .markdown-bordered {
+    padding: 1rem;
+  }
+}
+
+/* Callout 提示框（[!NOTE] 等引用块）：增加对应颜色的浅色背景框。
+   注意容器是 <div class="callout">，不是 blockquote */
+.custom-md .callout {
+  border-radius: calc(var(--radius-large) - 0.5rem);
+  background: color-mix(in oklab, var(--rc-color-light, var(--rc-color-default, #888)) 12%, transparent);
+}
+
+:root.dark .custom-md .callout {
+  background: color-mix(in oklab, var(--rc-color-dark, var(--rc-color-default, #888)) 18%, transparent);
+}
+
+/* 文章详情页正文图片自适应尺寸限制 */
+.custom-md p > img,
+.custom-md > img {
+  max-width: 100% !important;
+  max-height: 520px !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 1.5rem auto !important;
+  border-radius: var(--radius-large, 0.75rem);
+}

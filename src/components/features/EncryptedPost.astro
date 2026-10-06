@@ -1,0 +1,302 @@
+---
+import Icon from "@components/common/Icon.astro";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { encryptContent } from "@utils/crypto-utils";
+import diagramPanZoomScript from "../../plugins/diagram-panzoom-script.js?raw";
+
+interface Props {
+	password: string;
+	slug: string;
+	hint?: string;
+}
+
+const { password, slug, hint = "" } = Astro.props;
+
+const rawHtml = await Astro.slots.render("default");
+const encryptedData = encryptContent(rawHtml, password, slug);
+
+const labels = {
+	protected: i18n(I18nKey.passwordProtected),
+	desc: i18n(I18nKey.passwordProtectedDesc),
+	hint: i18n(I18nKey.passwordHint),
+	placeholder: i18n(I18nKey.passwordPlaceholder),
+	submit: i18n(I18nKey.passwordSubmit),
+	error: i18n(I18nKey.passwordError),
+};
+---
+
+<div
+  id="encrypted-container"
+  data-encrypted={encryptedData}
+  data-slug={slug}
+>
+  <!-- Lock UI -->
+  <div id="password-ui" class="flex justify-center py-16 px-4">
+    <div class="card-base flex flex-col items-center gap-3 max-w-100 w-full p-8">
+      <Icon name="material-symbols:shield-lock" class="text-8xl text-(--primary)" />
+
+      <h2 class="text-lg font-bold text-black/80 dark:text-white/80 m-0">{labels.protected}</h2>
+      <p class="text-sm text-black/40 dark:text-white/40 text-center m-0">{labels.desc}</p>
+
+      {hint && (
+        <p class="text-xs text-black/30 dark:text-white/30 text-center m-0">{labels.hint}: {hint}</p>
+      )}
+
+      <form id="password-form" class="w-full mt-2 space-y-2">
+        <input
+          id="password-input"
+          name="password"
+          type="password"
+          placeholder={labels.placeholder}
+          autocomplete="off"
+          class="w-full px-3 py-2 rounded-lg text-sm bg-black/5 dark:bg-white/10
+                 border border-black/8 dark:border-white/8
+                 text-black/80 dark:text-white/80 placeholder-black/25 dark:placeholder-white/25
+                 outline-none focus:border-(--primary) transition"
+        />
+        <button
+          type="submit"
+          class="w-full py-2 rounded-lg text-sm font-medium bg-(--primary) text-white dark:text-black/70
+                 hover:opacity-85 active:scale-[0.98] transition-all"
+        >
+          {labels.submit}
+        </button>
+      </form>
+
+      <p id="password-error" class="text-xs text-red-500 dark:text-red-400 m-0 hidden">{labels.error}</p>
+    </div>
+  </div>
+
+  <!-- Decrypted content injected here -->
+  <div id="decrypted-content" class="hidden"></div>
+</div>
+
+<script is:inline set:html={diagramPanZoomScript}></script>
+
+<script is:inline>
+(function() {
+  var ITERATIONS = 100000;
+  var SALT_LEN = 16;
+  var IV_LEN = 12;
+  var TAG_LEN = 16;
+  var FORMAT_HEADER = [0x46, 0x46, 0x45, 0x01];
+
+  var container = document.getElementById('encrypted-container');
+  if (!container) return;
+
+  var encryptedData = container.getAttribute('data-encrypted');
+  var slug = container.getAttribute('data-slug');
+  var cacheKey = 'pw:' + slug;
+
+  var ui = document.getElementById('password-ui');
+  var form = document.getElementById('password-form');
+  var input = document.getElementById('password-input');
+  var errorEl = document.getElementById('password-error');
+  var contentEl = document.getElementById('decrypted-content');
+
+  function isSafeUrl(value) {
+    // biome-ignore lint/complexity/useRegexLiterals: avoids control-character ranges in regex literals.
+    var trimmed = value
+      .trim()
+      .replace(new RegExp('[\\u0000-\\u001F\\u007F\\s]+', 'g'), '');
+    return /^(https?:|mailto:|tel:|\/|#|\.\/|\.\.\/|\?)/i.test(trimmed);
+  }
+
+  function sanitizeDecryptedHtml(html) {
+    var template = document.createElement('template');
+    template.innerHTML = html;
+
+    var blockedTags = {
+      script: true,
+      style: true,
+      iframe: true,
+      object: true,
+      embed: true,
+      link: true,
+      meta: true,
+      form: true,
+      input: true,
+      button: true,
+      svg: true,
+      math: true
+    };
+    var allowedAttrs = {
+      href: true,
+      src: true,
+      alt: true,
+      title: true,
+      class: true,
+      id: true,
+      target: true,
+      rel: true,
+      role: true,
+      'aria-label': true,
+      'aria-hidden': true,
+      'data-mermaid-code': true,
+      'data-fancybox': true,
+      'data-caption': true
+    };
+    var blockedDiagramSvgTags = {
+      script: true,
+      foreignobject: true,
+      iframe: true,
+      object: true,
+      embed: true,
+      link: true,
+      meta: true,
+      form: true,
+      input: true,
+      button: true,
+      math: true
+    };
+
+    var elements = template.content.querySelectorAll('*');
+    for (var i = 0; i < elements.length; i++) {
+      var el = elements[i];
+      var tagName = el.tagName.toLowerCase();
+      var generatedDiagram = el.closest('[data-generated-diagram="mermaid"]');
+      var isGeneratedDiagramSvg = generatedDiagram &&
+        el.namespaceURI === 'http://www.w3.org/2000/svg';
+
+      if (isGeneratedDiagramSvg) {
+        if (blockedDiagramSvgTags[tagName]) {
+          el.remove();
+          continue;
+        }
+
+        for (var svgAttrIndex = el.attributes.length - 1; svgAttrIndex >= 0; svgAttrIndex--) {
+          var svgAttr = el.attributes[svgAttrIndex];
+          var svgAttrName = svgAttr.name.toLowerCase();
+          if (svgAttrName.indexOf('on') === 0 || svgAttrName === 'srcdoc') {
+            el.removeAttribute(svgAttr.name);
+            continue;
+          }
+          if (
+            (svgAttrName === 'href' || svgAttrName === 'xlink:href') &&
+            !isSafeUrl(svgAttr.value)
+          ) {
+            el.removeAttribute(svgAttr.name);
+          }
+        }
+        continue;
+      }
+
+      if (blockedTags[tagName]) {
+        el.remove();
+        continue;
+      }
+
+      for (var j = el.attributes.length - 1; j >= 0; j--) {
+        var attr = el.attributes[j];
+        var name = attr.name.toLowerCase();
+        var value = attr.value;
+
+        if (name.indexOf('on') === 0 || name === 'style' || name === 'srcdoc') {
+          el.removeAttribute(attr.name);
+          continue;
+        }
+
+        if (!allowedAttrs[name] && name.indexOf('data-') !== 0) {
+          el.removeAttribute(attr.name);
+          continue;
+        }
+
+        if ((name === 'href' || name === 'src') && !isSafeUrl(value)) {
+          el.removeAttribute(attr.name);
+        }
+      }
+
+      if (tagName === 'a' && el.getAttribute('target') === '_blank') {
+        el.setAttribute('rel', 'noopener noreferrer');
+      }
+    }
+
+    return template.innerHTML;
+  }
+
+  function showContent(html) {
+    contentEl.innerHTML = sanitizeDecryptedHtml(html);
+    contentEl.classList.remove('hidden');
+    ui.classList.add('hidden');
+    // Re-init TOC after content is in DOM
+    setTimeout(function() {
+      document.dispatchEvent(new CustomEvent('password:decrypted'));
+    }, 100);
+  }
+
+  function showError() {
+    errorEl.classList.remove('hidden');
+  }
+
+  function hideError() {
+    errorEl.classList.add('hidden');
+  }
+
+  function base64ToBytes(b64) {
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) {
+      bytes[i] = bin.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  async function decrypt(pwd) {
+    var raw = base64ToBytes(encryptedData);
+    var hasVersionedHeader = FORMAT_HEADER.every(function(value, index) {
+      return raw[index] === value;
+    });
+    var offset = hasVersionedHeader ? FORMAT_HEADER.length : 0;
+    var minimumLength = offset + SALT_LEN + IV_LEN + TAG_LEN + 1;
+    if (raw.length < minimumLength) throw new Error('Invalid encrypted payload');
+
+    var salt = raw.slice(offset, offset + SALT_LEN);
+    var iv = raw.slice(offset + SALT_LEN, offset + SALT_LEN + IV_LEN);
+    var authTag = raw.slice(offset + SALT_LEN + IV_LEN, offset + SALT_LEN + IV_LEN + TAG_LEN);
+    var ciphertext = raw.slice(offset + SALT_LEN + IV_LEN + TAG_LEN);
+
+    var combined = new Uint8Array(ciphertext.length + TAG_LEN);
+    combined.set(ciphertext);
+    combined.set(authTag, ciphertext.length);
+
+    var enc = new TextEncoder();
+    var keyMaterial = await crypto.subtle.importKey(
+      'raw', enc.encode(pwd), 'PBKDF2', false, ['deriveBits', 'deriveKey']
+    );
+    var key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: salt, iterations: ITERATIONS, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+    var decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, combined);
+    return new TextDecoder().decode(decrypted);
+  }
+
+  // Handle form submit
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var pwd = input.value.trim();
+    if (!pwd) return;
+    hideError();
+    decrypt(pwd).then(function(html) {
+      sessionStorage.setItem(cacheKey, pwd);
+      showContent(html);
+    }).catch(function() {
+      showError();
+    });
+  });
+
+  // Try cached password
+  var cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    decrypt(cached).then(function(html) {
+      showContent(html);
+    }).catch(function() {
+      sessionStorage.removeItem(cacheKey);
+    });
+  }
+})();
+</script>

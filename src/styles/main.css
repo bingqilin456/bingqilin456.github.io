@@ -1,0 +1,675 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+/* === 布局层 === */
+@import './transition.css';
+@import './custom-scrollbar.css';
+@import './layout/grid.css';
+@import './layout/navbar-new.css';
+@import './layout/nav-menu-panel.css';
+@import './layout/dropdown-menu.css';
+@import './layout/navbar-profile-card.css';
+
+/* === 组件层 === */
+/* 页面专属样式不在这里引入（guestbook-chat / about-* / pages/*.css / widgets/archive-stats.css），
+   由对应页面自行 import，Astro 会按页拆包，避免全体页面共享一个过大的渲染阻塞 CSS。 */
+@import './components/page-loader.css';
+@import './components/page-title.css';
+@import './components/footer.css';
+@import './components/image-pixel-reveal.css';
+@import './components/floating-dock.css';
+@import './components/mobile-dock.css';
+@import './components/music-player.css';
+@import './components/privacy-modal.css';
+@import './components/live2d-widget.css';
+@import './components/model-message.css';
+@import './components/article-toc-panel.css';
+@import './components/related-posts.css';
+@import './components/wiki-link-card.css';
+
+/* === 侧边栏组件层 === */
+@import './widgets/announcement.css';
+
+
+@plugin '@tailwindcss/typography';
+
+/* 暗色模式选择器配置 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4 配置 - 从 tailwind.config.cjs 迁移 */
+@theme {
+  --font-sans:
+    'Roboto', 'sans-serif', ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* 自定义工具类 - Tailwind v4 使用 @utility 定义 */
+@utility expand-animation {
+  position: relative;
+  z-index: 0;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    scale: 0.85;
+    z-index: -10;
+    transition: background-color 0.15s ease-out, scale 0.15s ease-out;
+  }
+  &:hover::before {
+    background-color: var(--btn-plain-bg-hover);
+    scale: 1;
+  }
+  &:active::before {
+    background-color: var(--btn-plain-bg-active);
+  }
+  &:active {
+    background: none;
+  }
+}
+
+/* 确保平滑滚动，防止全屏元素溢出 */
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+/* 极简模式：顶部高光禁用 */
+.top-gradient-highlight { display: none; }
+
+@layer components {
+    /* View Transitions API 主题切换动画 */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 0.35s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        mix-blend-mode: normal;
+    }
+
+    ::view-transition-group(root) {
+        animation-duration: 0.35s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    ::view-transition-old(root) {
+        animation-name: theme-fade-out;
+        z-index: 2;
+    }
+
+    ::view-transition-new(root) {
+        animation-name: theme-fade-in;
+        z-index: 1;
+    }
+
+    @keyframes theme-fade-out {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    @keyframes theme-fade-in {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    /* 确保边框和分隔线元素在主题切换时有更明确的过渡时长 */
+    .transition,
+    [class*="border"],
+    [class*="transition"] {
+        transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 0.15s;
+    }
+    
+    /* 主题过渡保护类 - 仅在非 View Transitions 模式下使用 */
+    /* 当使用 View Transitions API 时，浏览器会自动处理过渡，不需要禁用 transition */
+    .is-theme-transitioning:not(.use-view-transition) *,
+    .is-theme-transitioning:not(.use-view-transition) *::before,
+    .is-theme-transitioning:not(.use-view-transition) *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    /* 在主题切换时禁用代码块的复杂效果以提升性能 */
+    /* 使用 View Transitions 时也需要禁用代码块动画，因为它们太多了 */
+    .is-theme-transitioning .expressive-code,
+    .is-theme-transitioning .expressive-code * {
+        transition: none !important;
+        animation: none !important;
+        will-change: auto !important;
+    }
+    
+    /* 禁用复杂选择器元素的过渡 - 仅在非 View Transitions 模式下 */
+    .is-theme-transitioning:not(.use-view-transition) .float-panel,
+    .is-theme-transitioning:not(.use-view-transition) .float-panel *,
+    .is-theme-transitioning:not(.use-view-transition) .music-player,
+    .is-theme-transitioning:not(.use-view-transition) .music-player *,
+    .is-theme-transitioning:not(.use-view-transition) .widget,
+    .is-theme-transitioning:not(.use-view-transition) .widget *,
+    .is-theme-transitioning:not(.use-view-transition) .dropdown-content,
+    .is-theme-transitioning:not(.use-view-transition) .dropdown-content *,
+    .is-theme-transitioning:not(.use-view-transition) .dropdown-content-wrapper,
+    .is-theme-transitioning:not(.use-view-transition) .dropdown-content-wrapper * {
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    /* 强制使用 contain 隔离渲染上下文 - 仅在非 View Transitions 模式下 */
+    .is-theme-transitioning:not(.use-view-transition) .post-card,
+    .is-theme-transitioning:not(.use-view-transition) .widget,
+    .is-theme-transitioning:not(.use-view-transition) .float-panel {
+        contain: layout style paint !important;
+    }
+    
+    /* 水波纹效果精确同步处理 - 仅在非 View Transitions 模式下 */
+    .is-theme-transitioning:not(.use-view-transition) svg use {
+        /* 禁用过渡但保持动画 */
+        transition: none;
+        /* 强制立即继承页面背景色 */
+        fill: currentColor;
+    }
+    
+    /* 导航栏主题切换保护 - 仅在非 View Transitions 模式下禁用过渡 */
+    .is-theme-transitioning:not(.use-view-transition) #navbar > div {
+        transition: none !important;
+        backdrop-filter: none !important;
+    }
+
+    /* View Transition 模式下，页头跟随 root 截图同步淡化，仅禁用自身延迟过渡和玻璃阴影 */
+    .is-theme-transitioning.use-view-transition #top-row,
+    .is-theme-transitioning.use-view-transition #navbar-wrapper,
+    .is-theme-transitioning.use-view-transition #navbar,
+    .is-theme-transitioning.use-view-transition #navbar > div,
+    .is-theme-transitioning.use-view-transition .navbar-pill,
+    .is-theme-transitioning.use-view-transition .navbar-glass-layer {
+        transition: none !important;
+        animation: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    
+    /* 导航栏相关浮动面板的过渡禁用 */
+    .is-theme-transitioning .dropdown-content,
+    .is-theme-transitioning .dropdown-content-wrapper,
+    .is-theme-transitioning .float-panel,
+    .is-theme-transitioning #display-setting,
+    .is-theme-transitioning #nav-menu-panel,
+    .is-theme-transitioning #translate-panel,
+    .is-theme-transitioning #mobile-toc-panel,
+    .is-theme-transitioning #search-panel {
+        transition: none !important;
+        backdrop-filter: none !important;
+    }
+    
+    /* 极简风格：card-base 退化为透明无边框无阴影，保留类名兼容旧组件 */
+    .card-base,
+    .card-base-transparent {
+        background-color: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        border-radius: 0 !important;
+        overflow: visible;
+    }
+
+    .enable-card-border .card-base,
+    .enable-card-border .card-base-transparent {
+        background-color: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .enable-card-border #navbar > div:not(.absolute) {
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* 极简区块容器：仅细线分隔，无填充色 */
+    .section {
+        @apply w-full;
+    }
+    .section + .section {
+        @apply mt-12 pt-12 border-t border-(--line-divider);
+    }
+    .section-label {
+        @apply text-xs uppercase tracking-[0.2em] text-(--content-meta) mb-6 font-mono;
+    }
+    .section-label::before { content: "[ "; }
+    .section-label::after  { content: " ]"; }
+
+    /* 描边按钮：仅细线，hover 反相填充 */
+    .btn-line {
+        @apply inline-flex items-center justify-center px-4 py-1.5 rounded-full
+               border border-(--line-divider) text-(--deep-text)
+               transition-colors duration-150
+               hover:border-(--deep-text) hover:bg-(--deep-text) hover:text-(--page-bg);
+    }
+    :root.dark .btn-line {
+        @apply text-white/85 hover:bg-white hover:text-black hover:border-white;
+    }
+
+    /* 右下浮动坞 */
+    .floating-dock {
+        position: fixed;
+        right: 1.25rem;
+        bottom: 1.25rem;
+        z-index: 60;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.75rem;
+        pointer-events: none;
+    }
+    .floating-dock > * { pointer-events: auto; }
+    .dock-btn {
+        width: 3.125rem;
+        height: 3.125rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1.25rem;
+        border: 2px solid var(--deep-text);
+        background: var(--page-bg);
+        color: var(--deep-text);
+        transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+    .dock-btn:hover {
+        background: var(--deep-text);
+        color: var(--page-bg);
+        border-color: var(--page-bg);
+    }
+    .dock-btn .dock-btn-icon {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 200ms ease-out, opacity 200ms ease-out;
+    }
+    .dock-btn .dock-btn-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+        letter-spacing: 0;
+        line-height: 1.2;
+        text-align: center;
+        padding: 0.125rem;
+        opacity: 0;
+        transition: opacity 160ms ease-out;
+        pointer-events: none;
+        word-break: break-word;
+    }
+    .dock-btn:hover .dock-btn-icon,
+    .dock-btn:focus-visible .dock-btn-icon {
+        transform: translateY(-6px);
+        opacity: 0;
+    }
+    .dock-btn:hover .dock-btn-label,
+    .dock-btn:focus-visible .dock-btn-label {
+        opacity: 1;
+    }
+    .dock-drawer {
+        --dock-drawer-radius: 1rem;
+        position: fixed;
+        right: 5rem;
+        bottom: 1.25rem;
+        width: 22rem;
+        max-height: 70vh;
+        overflow: auto;
+        background: var(--page-bg);
+        border: 2px solid #000;
+        border-radius: var(--dock-drawer-radius);
+        padding: 1.25rem;
+        z-index: 60;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    :root.dark .dock-drawer {
+        border-color: #fff;
+    }
+    .dock-drawer.dock-drawer-closed {
+        opacity: 0;
+        transform: translateX(0.5rem);
+        pointer-events: none;
+    }
+    @media (max-width: 768px) {
+        .dock-drawer {
+            right: 0;
+            left: 0;
+            bottom: 0;
+            width: auto;
+            max-height: 80vh;
+            border-left: 0;
+            border-right: 0;
+            border-bottom: 0;
+            border-top-width: 2px;
+            border-radius: var(--dock-drawer-radius) var(--dock-drawer-radius) 0 0;
+        }
+    }
+    
+    h1, h2, h3, h4, h5, h6, p, a, li, blockquote {
+        @apply transition-colors duration-150;
+    }
+    .card-shadow {
+        @apply drop-shadow-[0_2px_4px_rgba(0,0,0,0.005)]
+    }
+    .link {
+        @apply transition-colors duration-150 rounded-md p-1 -m-1 expand-animation;
+    }
+    .link-lg {
+        @apply transition-colors duration-150 rounded-md p-1.5 -m-1.5 expand-animation;
+    }
+    .float-panel {
+        @apply top-21 overflow-hidden bg-(--float-panel-bg) transition-colors duration-150 border border-(--line-divider)
+    }
+    .float-panel-closed {
+        @apply -translate-y-1 opacity-0 pointer-events-none
+    }
+    .float-panel-closed * {
+        @apply pointer-events-none
+    }
+    .search-panel mark {
+        @apply bg-transparent text-(--primary)
+    }
+
+    .btn-card {
+        @apply transition-colors duration-150 flex items-center justify-center bg-(--card-bg) hover:bg-(--btn-card-bg-hover)
+        active:bg-(--btn-card-bg-active)
+    }
+    .btn-card.disabled {
+        @apply pointer-events-none text-black/10 dark:text-white/10
+    }
+    .btn-plain {
+        @apply transition-colors duration-150 relative flex items-center justify-center bg-none
+        text-black/75 hover:text-(--primary) dark:text-white/75 dark:hover:text-(--primary);
+        &:not(.scale-animation) {
+            @apply hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active)
+        }
+        &.scale-animation {
+            @apply expand-animation;
+        }
+    }
+    .current-theme-btn {
+        @apply bg-(--btn-plain-bg-hover) text-(--primary);
+    }
+    .btn-regular {
+        @apply transition-colors duration-150 flex items-center justify-center bg-(--btn-regular-bg) hover:bg-(--btn-regular-bg-hover) active:bg-(--btn-regular-bg-active)
+        text-(--btn-content) dark:text-white/75
+    }
+
+    .link-underline {
+        @apply transition-colors duration-150 underline decoration-2 decoration-dashed decoration-(--link-underline)
+        hover:decoration-(--link-hover) active:decoration-(--link-active) underline-offset-[0.25rem]
+    }
+
+    .toc-hide,
+    .toc-not-ready {
+        @apply opacity-0 pointer-events-none
+    }
+
+    .hide-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .text-90 {
+        @apply text-black/90 dark:text-white/90
+    }
+    .text-75 {
+        @apply text-black/75 dark:text-white/75
+    }
+    .text-50 {
+        @apply text-black/50 dark:text-white/50
+    }
+    .text-30 {
+        @apply text-black/30 dark:text-white/30
+    }
+    .text-25 {
+        @apply text-black/25 dark:text-white/25
+    }
+
+    /* 下拉菜单样式 */
+    .dropdown-container {
+        @apply relative;
+    }
+
+    .dropdown-menu {
+        @apply absolute top-full left-0 pt-5 opacity-0 invisible pointer-events-none transition-all duration-200 ease-out transform translate-y-[-8px] z-50;
+    }
+
+    .dropdown-container:hover .dropdown-menu,
+    .dropdown-container:focus-within .dropdown-menu {
+        @apply opacity-100 visible pointer-events-auto translate-y-0;
+    }
+
+    .dropdown-container:hover .dropdown-arrow,
+    .dropdown-container:focus-within .dropdown-arrow {
+        @apply rotate-180;
+    }
+
+    .dropdown-content,
+    .dropdown-content-wrapper {
+        @apply border py-2 min-w-48 rounded-xl;
+        /* 细灰色边框：基于 --deep-text 28% 混色，随主题自动适配 */
+        border-color: color-mix(in oklch, var(--deep-text) 28%, transparent);
+        background: color-mix(in oklch, var(--float-panel-bg) 92%, transparent);
+    }
+
+    .dropdown-item {
+        @apply flex items-center justify-between px-4 py-2.5 text-black/75 dark:text-white/75 hover:text-(--primary) transition-colors duration-150 font-medium;
+        border: 1.5px solid transparent;
+        border-radius: 0.75rem;
+        background-color: transparent;
+    }
+
+    /* 与导航栏无边框悬停高亮保持一致（navbar-hover-highlight 同款灰色背景） */
+    .dropdown-item:hover {
+        background-color: color-mix(in oklch, var(--deep-text) 8%, transparent);
+    }
+
+    /* 移动端菜单样式 */
+    .mobile-submenu {
+        @apply max-h-0 overflow-hidden transition-all duration-300 ease-in-out;
+    }
+    
+    .mobile-dropdown[data-expanded="true"] .mobile-submenu {
+        @apply max-h-96;
+    }
+    
+    .mobile-dropdown[data-expanded="true"] .mobile-dropdown-arrow {
+        @apply rotate-180;
+    }
+
+    /* 响应式隐藏 */
+    @media (max-width: 768px) {
+        .dropdown-container {
+            @apply hidden;
+        }
+    }
+
+    /* 无障碍支持 */
+    .dropdown-container:focus-within .dropdown-menu {
+        @apply opacity-100 visible pointer-events-auto translate-y-0;
+    }
+
+    .dropdown-item:focus {
+        @apply outline-hidden;
+    }
+
+    .mobile-dropdown button:focus {
+        @apply outline-hidden;
+    }
+
+    .meta-icon {
+        @apply w-8 h-8 transition-colors duration-150 rounded-md flex items-center justify-center bg-(--btn-regular-bg)
+        text-(--btn-content) mr-2
+    }
+    .with-divider {
+        @apply before:content-['/'] before:ml-1.5 before:mr-1.5 before:text-(--meta-divider) before:text-sm
+        before:font-medium before:first-of-type:hidden before:transition-colors before:duration-150
+    }
+
+    .btn-regular-dark {
+        @apply flex items-center justify-center
+        bg-[oklch(0.45_0.01_var(--hue))] hover:bg-[oklch(0.50_0.01_var(--hue))] active:bg-[oklch(0.55_0.01_var(--hue))]
+        dark:bg-[oklch(0.30_0.02_var(--hue))] dark:hover:bg-[oklch(0.35_0.03_var(--hue))] dark:active:bg-[oklch(0.40_0.03_var(--hue))]
+    }
+    .btn-regular-dark.success {
+        @apply bg-[oklch(0.75_0.14_var(--hue))] dark:bg-[oklch(0.75_0.14_var(--hue))]
+    }
+}
+
+.custom-md img, #post-cover img {
+    @apply cursor-zoom-in
+}
+
+::selection {
+    background-color: var(--selection-bg)
+}
+
+.dash-line {
+    position: relative;
+}
+
+.dash-line::before {
+    content: "";
+    position: absolute;
+    width: 10%;
+    height: 100%;
+    left: calc(50% - 1px);
+    border-left: 2px dashed var(--line-color);
+    pointer-events: none;
+    transition: border-color 0.3s;
+    transform: translateY(-50%);
+}
+
+
+/*剧透效果*/
+.custom-md spoiler {
+  --_spoiler-mask: var(--primary);
+  @apply hover:bg-transparent px-1 py-0.5 overflow-hidden rounded-md transition-all duration-150;
+  background-color: var(--_spoiler-mask);
+  box-decoration-break: clone;
+  &:not(:hover) {
+    color: var(--_spoiler-mask);
+    * {
+        color: var(--_spoiler-mask);
+    }
+  }
+}
+
+/* 浅色模式：使用更浅的主题色且完全不透明 */
+:root:not(.dark) .custom-md spoiler {
+  --_spoiler-mask: color-mix(in oklch, var(--primary) 55%, white 45%);
+}
+
+/* 响应式分页样式 */
+.device-mobile .pagination-info {
+  @apply text-xs;
+}
+
+.device-tablet .pagination-info {
+  @apply text-sm;
+}
+
+.device-desktop .pagination-info {
+  @apply text-base;
+}
+
+/* 分页信息样式 */
+.pagination-info {
+  @apply text-sm text-(--text-secondary) text-center mb-2;
+}
+
+/* ============================================
+   首页文章卡片边框 - 全局样式（避免 Swup 缓存导致样式失效）
+   ============================================ */
+
+/* 网格/瀑布流模式卡片外边框 */
+.post-card-wrapper {
+  border: 2px solid #000 !important;
+}
+
+:root.dark .post-card-wrapper {
+  border-color: #fff !important;
+}
+
+/* 列表模式卡片间分隔线 */
+.list-mode .post-card-item {
+  border-bottom: 2px solid #000 !important;
+}
+
+:root.dark .list-mode .post-card-item {
+  border-bottom-color: #fff !important;
+}
+
+/* ============================================
+   分页控件样式 - 黑白粗边框、圆角、加粗字体
+   ============================================ */
+
+/* 分页按钮基础样式 */
+.pagination-btn,
+.pagination-page {
+  border: 2px solid #000 !important;
+  border-radius: 0.75rem !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  background: #fff !important;
+  color: #000 !important;
+  transition: background-color 150ms ease, color 150ms ease !important;
+}
+
+/* 分页按钮悬停 */
+.pagination-btn:hover,
+.pagination-page:hover {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* 当前页码 */
+.pagination-current {
+  border: 2px solid #000 !important;
+  border-radius: 0.75rem !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* 禁用状态 */
+.pagination-btn.disabled,
+.pagination-btn[disabled] {
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+}
+
+/* 暗黑模式 */
+:root.dark .pagination-btn,
+:root.dark .pagination-page {
+  border-color: #fff !important;
+  background: #000 !important;
+  color: #fff !important;
+}
+
+:root.dark .pagination-btn:hover,
+:root.dark .pagination-page:hover {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+:root.dark .pagination-current {
+  border-color: #fff !important;
+  background: #fff !important;
+  color: #000 !important;
+}

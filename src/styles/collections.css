@@ -1,0 +1,214 @@
+/* ===== 工具导航页样式 ===== */
+
+/* 手风琴分组列表：组间细横线分隔 */
+.tools-accordion + .tools-accordion {
+  border-top: 1px solid var(--line-divider);
+}
+.tools-accordion-list .tools-accordion:last-child {
+  border-bottom: 1px solid var(--line-divider);
+}
+
+/* 分组头部（点击展开/收起） */
+.tools-accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  text-align: start;
+  /* 左侧贴边，与页面标题对齐 */
+  padding: 1.25rem 0.25rem 1.25rem 0;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+.tools-accordion-header:focus-visible {
+  outline: 2px solid #00a29b;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* 左侧椭圆形长条，涵盖右侧标题与说明两层；
+   竖条用负 left 移到文字基线外侧，标题文字保持与页面标题左对齐 */
+.tools-accordion-title-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.tools-accordion-title-wrap::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 0.15rem;
+  bottom: 0.15rem;
+  width: 5px;
+  /* 胶囊形椭圆长条，纯色 */
+  border-radius: 999px;
+  background: #00a29b;
+  /* 悬停时伸长（与文章列表标题长条一致） */
+  transform-origin: center;
+  transition: transform 180ms ease;
+}
+.tools-accordion-header:hover .tools-accordion-title-wrap::before,
+.tools-accordion-header:focus-visible .tools-accordion-title-wrap::before {
+  transform: scaleY(1.12);
+}
+
+.tools-accordion-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--deep-text);
+  /* 悬停下划线（与文章列表标题一致）：透明色过渡淡入 */
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 180ms ease;
+}
+.tools-accordion-header:hover .tools-accordion-title,
+.tools-accordion-header:focus-visible .tools-accordion-title {
+  text-decoration-line: underline;
+  text-decoration-color: currentColor;
+}
+
+/* 标题下方的小字灰色说明 */
+.tools-accordion-desc {
+  font-size: 0.8rem;
+  color: oklch(0.55 0 0);
+}
+:root.dark .tools-accordion-desc {
+  color: oklch(0.6 0 0);
+}
+
+/* 右侧展开/收起箭头 */
+.tools-accordion-arrow {
+  margin-left: auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  color: oklch(0.6 0 0);
+  transition: rotate 0.4s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
+}
+.tools-accordion-header:hover .tools-accordion-arrow {
+  color: var(--deep-text);
+}
+.tools-accordion[data-open] .tools-accordion-arrow {
+  rotate: 180deg;
+}
+
+/* 展开/收起主体：grid-template-rows 过渡（合成层友好，60fps），贝塞尔缓动 */
+.tools-accordion-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tools-accordion[data-open] .tools-accordion-body {
+  grid-template-rows: 1fr;
+}
+.tools-accordion-body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* 展开后的卡片区域：左右不加内边距，卡片与标题严格左对齐 */
+.tools-accordion .tools-card-grid {
+  padding: 0.25rem 0 1.5rem;
+}
+
+/* 卡片网格 */
+.tools-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 1024px) {
+  .tools-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .tools-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 卡片样式 */
+.tools-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: var(--radius-large, 0.75rem);
+  border: 2px solid var(--deep-text);
+  background: var(--page-bg);
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 300ms ease, box-shadow 300ms ease, transform 300ms ease, background-color 300ms ease;
+}
+.tools-card:hover {
+  border-color: var(--deep-text);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+:root.dark .tools-card:hover {
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* 右上角跳转图标 */
+.tools-card-jump-icon {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  color: oklch(0.55 0 0);
+  background: oklch(0.9 0 0);
+  opacity: 0;
+  transform: scale(0.8) translateY(-4px);
+  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1), transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+  pointer-events: none;
+}
+:root.dark .tools-card-jump-icon {
+  color: oklch(0.6 0 0);
+  background: oklch(0.2 0 0);
+}
+.tools-card:hover .tools-card-jump-icon {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* 描述文本 */
+.tools-card-desc {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: oklch(0.45 0 0);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+  min-height: 2.625rem;
+}
+:root.dark .tools-card-desc {
+  color: oklch(0.62 0 0);
+}
+
+/* 底部域名 */
+.tools-card-footer {
+  display: flex;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid oklch(0.9 0 0);
+  margin-top: auto;
+}
+:root.dark .tools-card-footer {
+  border-color: oklch(0.2 0 0);
+}

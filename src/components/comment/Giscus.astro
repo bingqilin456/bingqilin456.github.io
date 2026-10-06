@@ -1,0 +1,42 @@
+---
+import { commentConfig } from "@/config";
+import Key from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { isGiscusConfigured } from "@/utils/giscus-controller";
+
+// 4 个仓库参数齐全才挂载 giscus 客户端。承载评论的仓库尚未创建时只给访客一句提示，
+// 不请求 giscus.app，也不在页面里留下空的 data-repo 属性。
+const giscus = commentConfig.giscus;
+const configured = isGiscusConfigured(giscus);
+---
+
+{
+	configured ? (
+		<>
+			<div class="giscus" />
+			<script>
+				// 客户端逻辑在 @/utils/giscus-controller（纯 TS，便于行为验证）。
+				// 挂载/卸载交给 definePageIsland：module 脚本二次进入同一页不会再执行
+				// （module map 命中），只有在 mount 里挂、在 unmount 里拆，
+				// 返回本页时才会重新挂载且不累积监听。
+				import { mountGiscus, unmountGiscus } from "@/utils/giscus-controller";
+				import { definePageIsland } from "@/utils/swup-lifecycle";
+
+				definePageIsland({
+					name: "giscus",
+					match: () => document.querySelector(".giscus") !== null,
+					mount: () => {
+						mountGiscus();
+					},
+					unmount: () => {
+						unmountGiscus();
+					},
+				});
+			</script>
+		</>
+	) : (
+		<div class="text-center py-8 text-(--content-meta)">
+			<p>{i18n(Key.commentNotOpenYet)}</p>
+		</div>
+	)
+}

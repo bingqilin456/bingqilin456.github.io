@@ -1,0 +1,352 @@
+---
+import GoogleAnalytics from "@components/analytics/GoogleAnalytics.astro";
+import La51Analytics from "@components/analytics/La51Analytics.astro";
+import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
+import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
+import CodeGroupManager from "@components/features/CodeGroupManager.astro";
+import CopyNoticeManager from "@components/features/CopyNoticeManager.astro";
+import FancyboxManager from "@components/features/FancyboxManager.astro";
+import FontManager from "@components/features/FontManager.astro";
+import MusicManager from "@components/features/MusicManager.astro";
+import MusicPlayer from "@components/features/MusicPlayer.astro";
+import PageLoader from "@components/features/PageLoader.astro";
+import PrivacyModal from "@components/features/PrivacyModal.astro";
+import UserAgreementModal from "@components/features/UserAgreementModal.astro";
+import WikiLinkCardManager from "@components/features/WikiLinkCardManager.astro";
+import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
+import MobileDock from "@components/layout/MobileDock.astro";
+import NavbarProfileCard from "@components/layout/NavbarProfileCard.astro";
+import FloatingDock from "@/components/controls/FloatingDock.astro";
+
+import { expressiveCodeConfig, homeConfig, siteConfig } from "@/config";
+import { PAGE_WIDTH } from "@/constants/constants";
+import { defaultFavicons } from "@/constants/icon";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { Favicon } from "@/types/config";
+import { url } from "@/utils/url-utils";
+
+import "@/styles/main.css";
+import "@/styles/variables.styl";
+import "@/styles/markdown-extend.styl";
+import "@rehype-callouts-theme";
+
+interface ArticleMeta {
+	published?: Date;
+	updated?: Date;
+	author?: string;
+	category?: string;
+	tags?: string[];
+}
+
+interface Props {
+	title?: string;
+	banner?: string;
+	description?: string;
+	lang?: string;
+	setOGTypeArticle?: boolean;
+	postSlug?: string;
+	robots?: string;
+	articleMeta?: ArticleMeta;
+	/** 显式指定的社交分享图（绝对 URL），文章页传真实封面 */
+	ogImage?: string;
+}
+
+const {
+	title,
+	description,
+	setOGTypeArticle,
+	postSlug,
+	articleMeta,
+	robots,
+	ogImage,
+} = Astro.props;
+let { lang } = Astro.props;
+
+const configHue = siteConfig.themeColor.hue;
+
+let pageTitle: string;
+
+if (title === siteConfig.title) {
+	pageTitle = siteConfig.title;
+} else if (title) {
+	pageTitle = `${title} - ${siteConfig.title}`;
+} else {
+	pageTitle = siteConfig.subtitle
+		? `${siteConfig.title} - ${siteConfig.subtitle}`
+		: siteConfig.title;
+}
+
+// og:image 三级优先（对齐上游 Firefly 的顺序）：构建期生成的 OG 卡片图 → 显式传入的真实
+// 封面 → 站点默认图。OG 卡片图必须排在封面之前：封面经 Astro 图片服务转成 WebP，而 QQ /
+// 微信等国内抓取器对 WebP 渲染不稳定，卡片常常有标题没图。
+// 站点默认图兜底是上游没有的一档，用于保证非文章页（首页 / 归档 / 枢纽页）也带 og:image。
+const ogImageUrl =
+	(siteConfig.generateOgImages && postSlug
+		? new URL(`/og/${postSlug}.png`, Astro.site).toString()
+		: "") ||
+	ogImage ||
+	new URL(siteConfig.defaultOgImage, Astro.site).toString();
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+
+const favicons: Favicon[] =
+	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
+
+if (!lang) {
+	lang = `${siteConfig.lang}`;
+}
+const siteLang = lang.replace("_", "-");
+---
+
+<!doctype html>
+<html lang={siteLang} class="bg-(--page-bg) text-[14px] md:text-[16px]">
+  <head>
+    <meta charset="UTF-8" />
+    {siteConfig.analytics?.googleAnalyticsId && (
+      <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    )}
+    {siteConfig.font.enable && siteConfig.font.selected?.includes("aazongyiyuan") && (
+      <link rel="preload" href={siteConfig.font.fonts.aazongyiyuan.src} as="font" type="font/woff2" crossorigin />
+    )}
+    {siteConfig.analytics?.microsoftClarityId && (
+      <link rel="preconnect" href="https://www.clarity.ms" crossorigin />
+    )}
+    {siteConfig.analytics?.umamiAnalytics?.websiteId && siteConfig.analytics.umamiAnalytics.scriptUrl && (
+      <link rel="preconnect" href={new URL(siteConfig.analytics.umamiAnalytics.scriptUrl).origin} crossorigin />
+    )}
+    {siteConfig.analytics?.googleAnalyticsId && (
+      <GoogleAnalytics analyticsId={siteConfig.analytics.googleAnalyticsId} />
+    )}
+    {siteConfig.analytics?.microsoftClarityId && (
+      <MicrosoftClarity clarityId={siteConfig.analytics.microsoftClarityId} />
+    )}
+    {siteConfig.analytics?.umamiAnalytics?.websiteId && (
+      <UmamiAnalytics
+        websiteId={siteConfig.analytics.umamiAnalytics.websiteId}
+        scriptUrl={siteConfig.analytics.umamiAnalytics.scriptUrl}
+        trackOutboundLinks={siteConfig.analytics.umamiAnalytics.trackOutboundLinks}
+        collectWebVitals={siteConfig.analytics.umamiAnalytics.collectWebVitals}
+        relpays={siteConfig.analytics.umamiAnalytics.relpays}
+      />
+    )}
+    {siteConfig.analytics?.la51Analytics?.Id && (
+      <La51Analytics
+        analyticsId={siteConfig.analytics.la51Analytics.Id}
+        sdkUrl={siteConfig.analytics.la51Analytics?.sdkUrl}
+        ck={siteConfig.analytics.la51Analytics?.ck}
+        autoTrack={siteConfig.analytics.la51Analytics?.autoTrack}
+        hashMode={siteConfig.analytics.la51Analytics?.hashMode}
+        screenRecord={siteConfig.analytics.la51Analytics?.screenRecord}
+      />
+    )}
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description || siteConfig.description || pageTitle} />
+    {robots && <meta name="robots" content={robots} />}
+    {/* 文章页用 tags 作为 keywords，否则回退站点级 keywords */}
+    {(() => {
+      const keywords =
+        (setOGTypeArticle && articleMeta?.tags && articleMeta.tags.length > 0)
+          ? articleMeta.tags
+          : (siteConfig.keywords ?? []);
+      return keywords.length > 0 ? <meta name="keywords" content={keywords.join(", ")} /> : null;
+    })()}
+    <meta name="author" content={homeConfig.name} />
+
+    <meta property="og:site_name" content={siteConfig.title} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description || siteConfig.description || pageTitle} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:alt" content={pageTitle} />
+    {setOGTypeArticle ? (
+      <meta property="og:type" content="article" />
+    ) : (
+      <meta property="og:type" content="website" />
+    )}
+
+    {/* 文章专属社交元数据：article:* 协议（FB / LinkedIn / 微信等读取） */}
+    {setOGTypeArticle && articleMeta?.published && (
+      <meta property="article:published_time" content={articleMeta.published.toISOString()} />
+    )}
+    {setOGTypeArticle && articleMeta?.updated && (
+      <meta property="article:modified_time" content={articleMeta.updated.toISOString()} />
+    )}
+    {setOGTypeArticle && (articleMeta?.author || homeConfig.name) && (
+      <meta property="article:author" content={articleMeta?.author || homeConfig.name} />
+    )}
+    {setOGTypeArticle && articleMeta?.category && (
+      <meta property="article:section" content={articleMeta.category} />
+    )}
+    {setOGTypeArticle && articleMeta?.tags && articleMeta.tags.length > 0 && (
+      articleMeta.tags.map((tag) => <meta property="article:tag" content={tag.trim()} />)
+    )}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description || siteConfig.description || pageTitle} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={pageTitle} />
+    {/* 文章页 Twitter 卡片附加作者与阅读时间标签 */}
+    {setOGTypeArticle && (
+      <>
+        <meta name="twitter:label1" content={i18n(I18nKey.author)} />
+        <meta name="twitter:data1" content={articleMeta?.author || homeConfig.name} />
+      </>
+    )}
+
+    <meta property="og:locale" content={siteLang} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    {favicons.map((favicon) => (
+      <link
+        rel={favicon.src.includes("apple-touch-icon") ? "apple-touch-icon" : "icon"}
+        href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src}
+        sizes={favicon.sizes}
+        media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`}
+      />
+    ))}
+
+    {/* 主题初始化（极简：仅 light/dark） */}
+    <script
+      is:inline
+      define:vars={{
+        configHue,
+        defaultMode: siteConfig.themeColor.defaultMode ?? "light",
+        darkTheme: expressiveCodeConfig.darkTheme,
+        lightTheme: expressiveCodeConfig.lightTheme,
+      }}
+    >
+      const stored = localStorage.getItem("theme");
+      // 如果没有存储过主题，使用配置的默认值（不写入 localStorage，让用户后续切换才持久化）
+      const theme = stored === "system"
+        ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+        : (stored || defaultMode);
+      const isDark = theme === "dark";
+      if (isDark) document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", isDark ? darkTheme : lightTheme);
+      // Persist resolved value if it was "system"
+      if (stored === "system") localStorage.setItem("theme", theme);
+
+      const hue = localStorage.getItem("hue") || configHue;
+      document.documentElement.style.setProperty("--hue", hue);
+    </script>
+    <style
+      define:vars={{
+        configHue,
+        "page-width": `${siteConfig.pageWidth ?? PAGE_WIDTH}rem`,
+      }}
+    ></style>
+
+    <slot name="head" />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={homeConfig.name}
+      href={`${Astro.site}rss.xml`}
+    />
+
+    <FontManager />
+  </head>
+  <body
+    class="min-h-screen bg-(--page-bg) text-(--deep-text)"
+    class:list={[
+      ...(siteConfig.font.enable && siteConfig.font.selected
+        ? (Array.isArray(siteConfig.font.selected)
+            ? siteConfig.font.selected
+            : [siteConfig.font.selected]
+          ).map((fontId) => `font-${fontId}-enabled`)
+        : []),
+    ]}
+  >
+    <div id="progress-bar"></div>
+    <PageLoader />
+    <ConfigCarrier />
+    <MusicManager />
+    <slot />
+    {/* 全局持久化组件 — Swup 容器外，所有页面共享（CLAUDE.md 4.2） */}
+    <MusicPlayer />
+    <FloatingDock />
+    <MobileDock />
+    {/* Logo 资料卡面板：挂 body 末尾而非 #navbar 内——移动端 #navbar 整体
+        display:none 会连带隐藏所有后代，面板在其中永远无法显示 */}
+    <NavbarProfileCard />
+    <div id="search-modal-root"></div>
+    <PrivacyModal />
+    <UserAgreementModal />
+    <FancyboxManager />
+    <CodeGroupManager />
+    <CopyNoticeManager />
+    <WikiLinkCardManager />
+  </body>
+</html>
+
+<script>
+  import { navigateToPage } from "@/utils/navigation-utils";
+  window.navigateToPage = navigateToPage;
+</script>
+
+<script>
+  import I18nKey from "@/i18n/i18nKey";
+	import { i18n } from "@/i18n/translation";
+  import {
+    requestSearchModalToggle,
+    SEARCH_MODAL_TOGGLE_EVENT,
+  } from "@/utils/search-modal-controller";
+
+  const SEARCH_PLACEHOLDERS = [
+    i18n(I18nKey.searchPlaceholder1),
+    i18n(I18nKey.searchPlaceholder2),
+    i18n(I18nKey.searchPlaceholder3),
+    i18n(I18nKey.searchPlaceholder4),
+  ];
+
+  if (!window.__searchLoadersReady) {
+    window.__searchLoadersReady = true;
+    let searchMountPromise: Promise<void> | null = null;
+
+    const mountSearchModal = () => {
+      if (window.__searchModalMounted) return Promise.resolve();
+      if (!searchMountPromise) {
+        searchMountPromise = Promise.all([
+          import("svelte"),
+          import("@/components/controls/SearchModal.svelte"),
+        ]).then(async ([{ mount, tick }, { default: SearchModal }]) => {
+          const target = document.getElementById("search-modal-root");
+          if (!target) throw new Error("Search modal root is missing");
+          mount(SearchModal, { target, props: { placeholders: SEARCH_PLACEHOLDERS } });
+          await tick();
+          window.__searchModalMounted = true;
+        }).catch((error) => {
+          searchMountPromise = null;
+          console.error("Failed to load search modal:", error);
+        });
+      }
+      return searchMountPromise;
+    };
+
+    window.addEventListener(SEARCH_MODAL_TOGGLE_EVENT, () => {
+      void mountSearchModal();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (window.__searchModalMounted) return;
+      if ((event.ctrlKey || event.metaKey) && event.code === "KeyK") {
+        event.preventDefault();
+        requestSearchModalToggle();
+      }
+    });
+  }
+</script>
+
+<script>
+	import { initLayout } from "@/utils/layout-init";
+
+	initLayout();
+</script>
