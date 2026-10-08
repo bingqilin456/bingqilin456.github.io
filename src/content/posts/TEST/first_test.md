@@ -17,11 +17,13 @@ comment: true
 password: ""
 passwordHint: ""
 wikiExclude: false
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 # HELLO WORLD
 
 ## this is a test!
 !
 
-[2026-10-06-f233473d-5e4a-4a1d-a9a7-5fcaaffcfbe8.jpg](../assets/2026-10-06-f233473d-5e4a-4a1d-a9a7-5fcaaffcfbe8.jpg)
+
+![2026-10-06-f233473d-5e4a-4a1d-a9a7-5fcaaffcfbe8.jpg](../assets/2026-10-06-f233473d-5e4a-4a1d-a9a7-5fcaaffcfbe8.jpg)
+
