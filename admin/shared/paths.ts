@@ -13,4 +13,20 @@ export function imageReference(postPath: string, imagePath: string): string {
  while(source.length && target.length && source[0]===target[0]) { source.shift(); target.shift(); }
  return "../".repeat(source.length)+target.join("/");
 }
+export function imageMarkdown(postPath:string,imagePath:string,alt:string):string {
+ const reference=encodeURI(imageReference(postPath,imagePath)).replace(/[()]/g,character=>character==="("?"%28":"%29");
+ const label=alt.replace(/[\\[\]()*_`]/g,"\\$&");
+ return "\n!["+label+"]("+reference+")\n";
+}
+export function imagePreviewSource(source:string,postPath?:string,blogUrl?:string|null):string|undefined {
+ if(/^https?:\/\//.test(source))return source;
+ if(source.startsWith("/")){
+  try{const base=new URL(blogUrl || "");if(["http:","https:"].includes(base.protocol))return new URL(source,base).toString();}catch{/* A public image needs a configured blog URL. */}
+  return undefined;
+ }
+ if(postPath && source){
+  try{const path=decodeURIComponent(new URL(source,"https://content.invalid/"+postPath).pathname.slice(1));assertContentPath(path,"image");return "/api/media/file?path="+encodeURIComponent(path);}catch{/* Unresolvable local images have a visible fallback. */}
+ }
+ return undefined;
+}
 
