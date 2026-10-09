@@ -1,3 +1,15 @@
 {
-	"albums": []
+	"albums": [
+		{
+			"id": "travel-acm",
+			"name": "唯独ACM的时光无法忘却~",
+			"description": "cout << \"ACM于我，是一场遥望不可及的梦。\" << endl;",
+			"date": "",
+			"location": "",
+			"tags": ["ACM", "CCPC", "ICPC"],
+			"enabled": true,
+			"coverPhotoId": "",
+			"photos": []
+		}
+	]
 }

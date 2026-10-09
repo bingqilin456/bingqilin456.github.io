@@ -1,5 +1,21 @@
 {
-	"title": "",
+	"title": "AI工具",
 	"description": "",
-	"apis": []
+	"apis": [
+		{
+			"id": "58449558-c749-459f-a62f-b7671becaeb2",
+			"category": "AI工具",
+			"description": "",
+			"items": [
+				{
+					"id": "fcda4ad6-18d0-49fc-bc42-265b834082b2",
+					"name": "chatgpt",
+					"url": "https://chatgpt.com",
+					"description": "",
+					"icon": "https://chatgpt.com/favicon.ico",
+					"enabled": true
+				}
+			]
+		}
+	]
 }
