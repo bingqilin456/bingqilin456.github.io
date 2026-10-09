@@ -30,20 +30,46 @@
 					"width": 1543,
 					"height": 1096,
 					"description": "2026广东CCPC省赛铜奖.png"
-				},
+				}
+			]
+		},
+		{
+			"id": "travel-competitions",
+			"name": "蓝桥杯&传智杯&天梯赛",
+			"description": "",
+			"date": "",
+			"location": "",
+			"tags": [],
+			"enabled": false,
+			"coverPhotoId": "",
+			"photos": [
 				{
-					"id": "a2436658-82e4-4e88-9808-1e749d38d2ae",
-					"src": "/gallery/travel-acm/2026-10-09-258e8571-16f9-43b2-b84e-f65a52c1b5f1.jpg",
+					"id": "f2a7b222-ac93-48f6-b429-3631af7f727a",
+					"src": "/gallery/travel-competitions/2026-10-09-fae15128-6ed0-40b4-b704-e5282ae21b03.jpg",
 					"width": 3508,
 					"height": 2480,
-					"description": "程序设计挑战赛-国赛（B组）一等奖-CZB10013G160641.jpg"
+					"description": "程序设计挑战赛-国赛（B组）一等奖.jpg"
 				},
 				{
-					"id": "7ef3c6a8-1d96-455e-94b7-d50f8a7443a1",
-					"src": "/gallery/travel-acm/2026-10-09-39cbf7f5-3222-4d2d-bd20-a75dfcabc21f.jpg",
+					"id": "a8872ca3-8414-476d-a615-95111bd92922",
+					"src": "/gallery/travel-competitions/2026-10-09-c8f58e4a-ba5b-425d-87c1-a459441cb23e.jpg",
 					"width": 2480,
 					"height": 3508,
 					"description": "蓝桥杯国赛三等奖.jpg"
+				},
+				{
+					"id": "a750fb7d-e7c1-49c2-952d-06a762519ea7",
+					"src": "/gallery/travel-competitions/2026-10-09-364a4e8f-d513-4353-a5bd-8bc921d7d1ca.png",
+					"width": 670,
+					"height": 883,
+					"description": "天梯赛个人国家三等奖.png"
+				},
+				{
+					"id": "acad12dd-208a-4c47-b07c-bd7c8bf3f407",
+					"src": "/gallery/travel-competitions/2026-10-09-2cb52079-e5d7-476d-8219-25c4444950f2.png",
+					"width": 670,
+					"height": 883,
+					"description": "天梯赛莞工一队团队国家二等奖.png"
 				}
 			]
 		}
