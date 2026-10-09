@@ -8,8 +8,44 @@
 			"location": "",
 			"tags": ["ACM", "CCPC", "ICPC"],
 			"enabled": true,
-			"coverPhotoId": "",
-			"photos": []
+			"coverPhotoId": "01457dda-6fad-4e1d-a125-c3b89bf77397",
+			"photos": [
+				{
+					"id": "4a0740bf-6f57-433f-ae12-254c1eede87c",
+					"src": "/gallery/travel-acm/2026-10-09-5f0c7ba3-1c39-4229-b434-5b71267362d6.png",
+					"width": 1722,
+					"height": 1210,
+					"description": "2026广西CCPC省赛铜奖.png"
+				},
+				{
+					"id": "01457dda-6fad-4e1d-a125-c3b89bf77397",
+					"src": "/gallery/travel-acm/2026-10-09-d32ab37b-6716-4516-a6f1-1ea6619c18c0.jpg",
+					"width": 1745,
+					"height": 1237,
+					"description": "2026南昌CCPC邀请赛银牌.jpg"
+				},
+				{
+					"id": "cd02e90a-8a01-408c-ae5a-1d0ad52a433e",
+					"src": "/gallery/travel-acm/2026-10-09-eb1ca3b7-9e2f-45fd-a032-58179ca1adfa.png",
+					"width": 1543,
+					"height": 1096,
+					"description": "2026广东CCPC省赛铜奖.png"
+				},
+				{
+					"id": "a2436658-82e4-4e88-9808-1e749d38d2ae",
+					"src": "/gallery/travel-acm/2026-10-09-258e8571-16f9-43b2-b84e-f65a52c1b5f1.jpg",
+					"width": 3508,
+					"height": 2480,
+					"description": "程序设计挑战赛-国赛（B组）一等奖-CZB10013G160641.jpg"
+				},
+				{
+					"id": "7ef3c6a8-1d96-455e-94b7-d50f8a7443a1",
+					"src": "/gallery/travel-acm/2026-10-09-39cbf7f5-3222-4d2d-bd20-a75dfcabc21f.jpg",
+					"width": 2480,
+					"height": 3508,
+					"description": "蓝桥杯国赛三等奖.jpg"
+				}
+			]
 		}
 	]
 }
