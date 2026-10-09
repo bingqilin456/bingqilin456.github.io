@@ -74,3 +74,39 @@ test("封面和正文预览将中文相对图片解析到同源接口，public �
  assert.equal(imagePreviewSource("https://images.example.com/a.png",postPath,blogUrl),"https://images.example.com/a.png");
  for(const source of ["", "../../../secret.png", "javascript:alert(1)"])assert.equal(imagePreviewSource(source,postPath,blogUrl),undefined);
 });
+test("照片引用移除清空封面，工具跨分类移动保持标识与原清单不变", async () => {
+ const helpers=await import("../shared/managed-content.ts").catch(()=>null);
+ assert.ok(helpers,"管理界面的清单操作尚未实现");
+ const album={id:"travel",name:"旅行",description:"",date:"",location:"",tags:[],enabled:false,coverPhotoId:"p",photos:[{id:"p",src:"https://example.com/p.png",width:10,height:10,description:""}]};
+ assert.equal(helpers.removeAlbumPhoto(album,"p").coverPhotoId,"");
+ assert.equal(album.photos.length,1);
+ const tool={id:"t",name:"工具",url:"https://example.com",description:"",icon:"",enabled:true};
+ const catalog={title:"",description:"",apis:[{id:"a",category:"A",description:"",items:[tool]},{id:"b",category:"B",description:"",items:[]}]};
+ const moved=helpers.moveTool(catalog,"a","t","b");
+ assert.equal(moved.apis[0].items.length,0);
+ assert.equal(moved.apis[1].items[0].id,"t");
+ assert.equal(catalog.apis[0].items.length,1);
+});
+test("外部图标编辑模式保留空值与未完成的网址，切换内置图标后退出", async () => {
+ const helpers=await import("../shared/managed-content.ts");
+ assert.equal(typeof helpers.toolIconMode,"function","外链图标模式尚未与网址内容分离");
+ assert.equal(helpers.toolIconMode("https://example.com/icon.png",undefined),"external");
+ for(const value of ["","h","https:","https://"])assert.equal(helpers.toolIconMode(value,"external"),"external");
+ assert.equal(helpers.toolIconMode("material-symbols:code","builtin"),"builtin");
+});
+
+test("恢复登录入口在新窗口登录，刷新会话按钮不清空未保存编辑", async () => {
+ const {tsImport}=await import("tsx/esm/api");
+ const recovery=await tsImport("../src/features/managed/session-recovery.tsx",import.meta.url).catch(()=>null);
+ assert.ok(recovery,"会话恢复入口尚未实现");
+ const React=await import("react"),{renderToStaticMarkup}=await import("react-dom/server");
+ const current={sha:"old",data:{albums:[{name:"尚未保存"}]}},before=JSON.stringify(current);let refreshes=0;
+ const element=recovery.CatalogSessionRecovery({busy:false,onRecover:async()=>{refreshes++;}});
+ const html=renderToStaticMarkup(element);
+ assert.ok(html.includes('target="_blank"'));assert.ok(html.includes("恢复登录"));
+ const nodes:unknown=element.props.children,children=Array.isArray(nodes)?nodes:[nodes];
+ const button=children.find(node=>React.isValidElement<{onClick?:()=>Promise<void>}>(node) && typeof node.props.onClick==="function");
+ assert.ok(React.isValidElement<{onClick:()=>Promise<void>}>(button));
+ await button.props.onClick();
+ assert.equal(refreshes,1);assert.equal(JSON.stringify(current),before);
+});

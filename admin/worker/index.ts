@@ -7,8 +7,10 @@ import { createRepository } from "#worker/repository";
 import { listPosts, loadPost, savePost, deletePost, changeTaxonomy } from "#worker/content-service";
 import { uploadImage, listImages, serveImage } from "#worker/media";
 import { listDeployments, checkConnection } from "#worker/publishing";
-import { boundedBody, jsonInput } from "#worker/request-body";
+import { jsonInput, imageUploadFile } from "#worker/request-body";
 import { savePostSchema, taxonomySchema } from "#shared/post-schema";
+import { loadGallery, saveGallery, loadTools, saveTools } from "#worker/managed-content";
+import { saveGallerySchema, saveToolsSchema, albumIdSchema } from "#shared/managed-schema";
 export async function handleRequest(request:Request,env:WorkerEnv):Promise<Response> {
  const url=new URL(request.url),route=url.pathname,method=request.method;
  try {
@@ -21,6 +23,17 @@ export async function handleRequest(request:Request,env:WorkerEnv):Promise<Respo
    if(method!=="GET")assertWriteRequest(request,session,env);
    if(route==="/api/session" && method==="GET")return jsonResponse(sessionView(session));
    const repo=createRepository(env,session.token);
+   if(route==="/api/gallery" && method==="GET")return jsonResponse(await loadGallery(repo));
+   if(route==="/api/gallery" && method==="POST")return jsonResponse(await saveGallery(repo,await jsonInput(request,saveGallerySchema)));
+   if(route==="/api/tools" && method==="GET")return jsonResponse(await loadTools(repo));
+   if(route==="/api/tools" && method==="POST")return jsonResponse(await saveTools(repo,await jsonInput(request,saveToolsSchema)));
+   if(route==="/api/gallery/image" && method==="GET")return await serveImage(repo,url.searchParams.get("path") || "","gallery-image");
+   if(route==="/api/gallery/image" && method==="POST"){
+    const albumId=albumIdSchema.safeParse(url.searchParams.get("album"));
+    if(!albumId.success)throw new AppError(400,"INVALID_ALBUM","相册标识无效。");
+    const result=await uploadImage(repo,await imageUploadFile(request),albumId.data);
+    return jsonResponse({src:result.item.path.slice("public".length),commit:result.commit});
+   }
    if(route==="/api/posts" && method==="GET")return jsonResponse(await listPosts(repo));
    if(route==="/api/post" && method==="GET")return jsonResponse(await loadPost(repo,url.searchParams.get("path") || ""));
    if(route==="/api/post" && method==="POST")return jsonResponse(await savePost(repo,await jsonInput(request,savePostSchema)));
@@ -31,12 +44,7 @@ export async function handleRequest(request:Request,env:WorkerEnv):Promise<Respo
    if(route==="/api/taxonomy" && method==="POST")return jsonResponse(await changeTaxonomy(repo,await jsonInput(request,taxonomySchema)));
    if(route==="/api/media" && method==="GET")return jsonResponse(await listImages(repo));
    if(route==="/api/media" && method==="POST"){
-    if(!request.headers.get("Content-Type")?.startsWith("multipart/form-data"))throw new AppError(415,"CONTENT_TYPE","请使用图片上传表单。");
-    const bytes=await boundedBody(request,5*1024*1024+65536);
-    let form:FormData;
-    try{form=await new Response(bytes,{headers:{"Content-Type":request.headers.get("Content-Type") || ""}}).formData();}catch{throw new AppError(400,"INVALID_UPLOAD","图片上传格式无效。");}
-    const file=form.get("file");if(!(file instanceof File))throw new AppError(400,"MISSING_IMAGE","请选择图片。");
-    return jsonResponse(await uploadImage(repo,file));
+    return jsonResponse(await uploadImage(repo,await imageUploadFile(request)));
    }
    if(route==="/api/media/file" && method==="GET")return await serveImage(repo,url.searchParams.get("path") || "");
    if(route==="/api/deployments" && method==="GET")return jsonResponse(await listDeployments(repo,20));
