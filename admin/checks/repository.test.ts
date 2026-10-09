@@ -1,6 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createRepository } from "#worker/repository";
+import { assertContentPath } from "#shared/paths";
+
+test("管理内容只开放两个 JSON 清单和相册图片，保留文章路径边界", () => {
+ for(const path of ["src/content/gallery.json","src/content/tools.json"]){
+  assert.doesNotThrow(()=>assertContentPath(path,"catalog"));
+ }
+ assert.doesNotThrow(()=>assertContentPath("public/gallery/travel/photo.webp","gallery-image"));
+ for(const path of ["src/config/siteConfig.ts","src/content/other.json","public/gallery/../photo.webp","public/gallery/travel/photo.svg","public/gallery/travel/%2e%2e/photo.png"]){
+  assert.throws(()=>assertContentPath(path,path.endsWith("json") || path.endsWith("ts")?"catalog":"gallery-image"));
+ }
+ assert.throws(()=>assertContentPath("public/gallery/travel/photo.webp","image"));
+});
 const env={GITHUB_OWNER:"owner",GITHUB_REPO:"blog",GITHUB_BRANCH:"master"};
 test("GitHub blob 读取与文章编辑完整保留 UTF-8 BOM",async()=>{
  const raw="\uFEFF---\ntitle: A\npublished: 2026-10-05\n---\nbody",mock=fixture();

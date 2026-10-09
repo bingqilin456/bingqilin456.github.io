@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
-import { LayoutDashboard, FileText, Tags, Image, Rocket, Settings, PanelLeft, Moon, Sun, ArrowUpRight, Feather, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, Tags, Image, Images, Link2, Rocket, Settings, PanelLeft, Moon, Sun, ArrowUpRight, Feather, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { useSession } from "@/features/auth/session";
@@ -8,7 +8,7 @@ import { apiRequest, safeLink } from "@/lib/api";
 import { okSchema } from "@shared/api-schema";
 import { ErrorNotice } from "@/components/page";
 import { cn } from "@/lib/utils";
-const navigation=[{path:"/",label:"工作台",icon:LayoutDashboard},{path:"/posts",label:"文章管理",icon:FileText},{path:"/taxonomy",label:"标签与分类",icon:Tags},{path:"/media",label:"图片管理",icon:Image},{path:"/publishing",label:"发布记录",icon:Rocket},{path:"/settings",label:"连接设置",icon:Settings}];
+const navigation=[{path:"/",label:"工作台",icon:LayoutDashboard},{path:"/posts",label:"文章管理",icon:FileText},{path:"/taxonomy",label:"标签与分类",icon:Tags},{path:"/media",label:"图片管理",icon:Image},{path:"/gallery",label:"相册管理",icon:Images},{path:"/tools",label:"工具导航",icon:Link2},{path:"/publishing",label:"发布记录",icon:Rocket},{path:"/settings",label:"连接设置",icon:Settings}];
 function Navigation({close}:{close?:()=>void}):React.JSX.Element {
  return <><Link to="/" className="brand" onClick={close}><span className="brand-mark"><Feather size={23}/></span><span><strong>BQL · 博客管理</strong><small>WRITE YOUR OWN STORY</small></span></Link><div className="workspace-chip"><span className="status-dot"/>个人工作空间<span className="workspace-badge">ADMIN</span></div><p className="nav-caption">内容管理</p><nav aria-label="后台导航">{navigation.map(({path,label,icon:Icon})=><NavLink key={path} to={path} end={path==="/"} className={({isActive})=>cn("nav-item",isActive && "active")} onClick={close}><Icon size={18}/><span>{label}</span></NavLink>)}</nav></>;
 }

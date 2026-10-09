@@ -17,4 +17,12 @@ export async function jsonInput<T>(request:Request,schema:z.ZodType<T>):Promise<
  if(!parsed.success)throw new AppError(400,"INVALID_FIELDS","字段验证失败："+parsed.error.issues.map(issue=>issue.path.join(".")+": "+issue.message).slice(0,3).join("；"));
  return parsed.data;
 }
+export async function imageUploadFile(request:Request):Promise<File> {
+ if(!request.headers.get("Content-Type")?.startsWith("multipart/form-data"))throw new AppError(415,"CONTENT_TYPE","请使用图片上传表单。");
+ const bytes=await boundedBody(request,5*1024*1024+65536);
+ let form:FormData;
+ try{form=await new Response(bytes,{headers:{"Content-Type":request.headers.get("Content-Type") || ""}}).formData();}catch{throw new AppError(400,"INVALID_UPLOAD","图片上传格式无效。");}
+ const file=form.get("file");if(!(file instanceof File))throw new AppError(400,"MISSING_IMAGE","请选择图片。");
+ return file;
+}
 

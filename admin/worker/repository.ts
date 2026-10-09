@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { CommitReceipt, FileMutation, Repository, RepositoryFile, WorkflowRun } from "#shared/contracts";
-import { assertContentPath } from "#shared/paths";
+import { assertContentPath, repositoryPathKind } from "#shared/paths";
 import { AppError } from "#worker/errors";
 import { githubRequest, repositoryBase, toBase64, fromBase64 } from "#worker/github";
 import type { WorkerEnv } from "#worker/env";
@@ -42,7 +42,7 @@ export function createRepository(env: WorkerEnv, token: string, fetcher: typeof 
  let readSnapshot:Promise<RepositoryFile[]>|undefined;
  function readIndex():Promise<RepositoryFile[]> {readSnapshot ??= head().then(current=>index(current.tree));return readSnapshot;}
  async function read(path:string):Promise<{sha:string;bytes:Uint8Array}> {
-  assertContentPath(path,/\.(md|mdx)$/.test(path) ? "post" : "image");
+  assertContentPath(path,repositoryPathKind(path));
   const file=safe((await readIndex()).find(row=>row.path===path));
   if(file.size>6_000_000) throw new AppError(413,"FILE_TOO_LARGE","文件超过后台读取上限。");
   const blob=await request("/git/blobs/"+file.sha,z.object({content:z.string(),encoding:z.literal("base64")}));
@@ -61,7 +61,14 @@ export function createRepository(env: WorkerEnv, token: string, fetcher: typeof 
     if(JSON.stringify(actual)!==JSON.stringify(expected))throw new AppError(409,"TAXONOMY_CHANGED","文章集合已变化，请刷新后重新确认。");
    }
    for(const change of changes) {
-    try { assertContentPath(change.path,change.content instanceof Uint8Array ? "image" : "post"); } catch { throw new AppError(400,"INVALID_PATH","写入路径或文件类型不受支持。"); }
+    try {
+     const kind=repositoryPathKind(change.path);
+     assertContentPath(change.path,kind);
+     if(kind==="gallery-image" && (!(change.content instanceof Uint8Array) || change.expectedSha!==null))throw new Error("相册图片只允许新增");
+     if(kind==="catalog" && typeof change.content!=="string")throw new Error("清单必须是 JSON 文本");
+     if(kind==="post" && change.content instanceof Uint8Array)throw new Error("文章必须是文本");
+     if(kind==="image" && typeof change.content==="string")throw new Error("图片必须是二进制");
+    } catch { throw new AppError(400,"INVALID_PATH","写入路径或文件类型不受支持。"); }
     const file=files.find(row=>row.path===change.path);
     if(file) safe(file);
     if((file?.sha || null)!==change.expectedSha) throw new AppError(409,"VERSION_CONFLICT","文件已被其他设备修改；请保留编辑内容并重新读取版本。");

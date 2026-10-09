@@ -16,6 +16,7 @@ const aspectRatio = `aspect-ratio: ${photo.width} / ${photo.height};`;
 		data-fancybox={`gallery-${albumId}`}
 		data-src={photo.src}
 		data-type="image"
+		data-caption={photo.description}
 		class="block rounded-xl overflow-hidden group cursor-pointer relative bg-neutral-200 dark:bg-neutral-800"
 		style={aspectRatio}
 	>

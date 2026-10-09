@@ -930,7 +930,15 @@ export type ResponsiveImageLayout = "constrained" | "full-width" | "none";
 // 图像格式类型
 export type ImageFormat = "avif" | "webp" | "png" | "jpg" | "jpeg" | "gif";
 
-// 相册元信息（用户在配置文件中填写）
+export type GalleryPhotoEntry = {
+	id: string;
+	src: string;
+	width: number;
+	height: number;
+	description?: string;
+};
+
+// 相册元信息与照片清单由管理后台维护。
 export type GalleryAlbum = {
 	id: string; // URL slug + 目录名，如 "japan-2025"
 	name: string; // 相册名称
@@ -938,7 +946,9 @@ export type GalleryAlbum = {
 	date?: string; // 日期
 	location?: string; // 拍摄地点
 	tags?: string[]; // 标签（用于首页筛选）
-	cover?: string; // 手动指定封面（可选，省略则自动取 cover.* 或第一张）
+	enabled: boolean;
+	coverPhotoId?: string;
+	photos: GalleryPhotoEntry[];
 };
 
 // 相册配置
@@ -949,6 +959,7 @@ export type GalleryConfig = {
 
 // 收藏API单项
 export type CollectionApiItem = {
+	id: string;
 	name: string; // API 名称
 	url: string; // API 链接地址
 	description: string; // API 描述
@@ -958,6 +969,7 @@ export type CollectionApiItem = {
 
 // 收藏API分类分组
 export type CollectionApiGroup = {
+	id: string;
 	category: string; // 分类名称
 	description?: string; // 分类简短说明，显示在标题下方，留空则不显示
 	items: CollectionApiItem[]; // 该分类下的 API 列表
