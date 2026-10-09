@@ -102,9 +102,23 @@ export function CatalogActions({
 		</div>
 	);
 }
-export function readImageSize(
-	src: string,
+export async function readImageSize(
+	src: string | Blob,
 ): Promise<{ width: number; height: number }> {
+	// 后台 CSP 允许 data:，本地图片不能通过 blob: 地址加载。
+	const source =
+		typeof src === "string"
+			? src
+			: await new Promise<string>((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = () => {
+						if (typeof reader.result === "string") resolve(reader.result);
+						else reject(new Error("图片读取失败，请重新选择文件。"));
+					};
+					reader.onerror = () =>
+						reject(new Error("图片读取失败，请重新选择文件。"));
+					reader.readAsDataURL(src);
+				});
 	return new Promise((resolve, reject) => {
 		const image = new window.Image(),
 			timer = window.setTimeout(
@@ -121,6 +135,6 @@ export function readImageSize(
 		image.onload = () => finish();
 		image.onerror = () =>
 			finish(new Error("图片无法加载，请检查链接或手动填写尺寸。"));
-		image.src = src;
+		image.src = source;
 	});
 }

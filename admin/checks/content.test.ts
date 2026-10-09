@@ -110,3 +110,35 @@ test("恢复登录入口在新窗口登录，刷新会话按钮不清空未保�
  await button.props.onClick();
  assert.equal(refreshes,1);assert.equal(JSON.stringify(current),before);
 });
+
+test("相册本地图片用 CSP 允许的 data 地址读取尺寸，HTTPS 外链仍可读取", async () => {
+ const {tsImport}=await import("tsx/esm/api");
+ const {readImageSize}=await tsImport("../src/features/managed/components.tsx",import.meta.url);
+ const png="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=";
+ const windowDescriptor=Object.getOwnPropertyDescriptor(globalThis,"window"),readerDescriptor=Object.getOwnPropertyDescriptor(globalThis,"FileReader");
+ class BrowserImage {
+  naturalWidth=1;naturalHeight=1;onload:(()=>void)|null=null;onerror:(()=>void)|null=null;
+  set src(value:unknown){
+   // 模拟当前 img-src：只接受该 PNG 的 data 地址或 HTTPS，拒绝 Blob 对象和 blob 地址。
+   const allowed=value==="data:image/png;base64,"+png || value==="https://images.example/photo.png";
+   queueMicrotask(()=>{if(allowed)this.onload?.();else this.onerror?.();});
+  }
+ }
+ class BrowserFileReader {
+  result:string|null=null;onload:(()=>void)|null=null;onerror:(()=>void)|null=null;
+  readAsDataURL(file:Blob):void{
+   void file.arrayBuffer().then(bytes=>{this.result="data:"+file.type+";base64,"+Buffer.from(bytes).toString("base64");this.onload?.();},()=>this.onerror?.());
+  }
+ }
+ Object.defineProperty(globalThis,"window",{configurable:true,value:{Image:BrowserImage,setTimeout,clearTimeout}});
+ Object.defineProperty(globalThis,"FileReader",{configurable:true,value:BrowserFileReader});
+ try{
+  const file=new File([Buffer.from(png,"base64")],"photo.png",{type:"image/png"});
+  assert.deepEqual(await readImageSize(file),{width:1,height:1});
+  assert.deepEqual(await readImageSize("https://images.example/photo.png"),{width:1,height:1});
+  await assert.rejects(readImageSize(new File(["broken"],"broken.png",{type:"image/png"})),/图片无法加载/);
+ }finally{
+  if(windowDescriptor)Object.defineProperty(globalThis,"window",windowDescriptor);else Reflect.deleteProperty(globalThis,"window");
+  if(readerDescriptor)Object.defineProperty(globalThis,"FileReader",readerDescriptor);else Reflect.deleteProperty(globalThis,"FileReader");
+ }
+});

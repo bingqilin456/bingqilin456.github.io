@@ -104,24 +104,18 @@ export function GalleryPage(): React.JSX.Element {
 		setCreateOpen(false);
 		setError(null);
 	}
-	async function upload(files: FileList | null): Promise<void> {
-		if (!files?.length || !album) return;
+	async function upload(files: File[]): Promise<void> {
+		if (!files.length || !album) return;
 		const targetId = album.id;
 		setUploading(true);
 		setError(null);
 		let added = 0;
 		try {
-			for (const file of Array.from(files)) {
+			for (const file of files) {
 				setProgress("正在上传 " + (added + 1) + " / " + files.length);
 				if (!file.size || file.size > 5 * 1024 * 1024)
 					throw new Error(file.name + "：图片需大于 0 且不超过 5 MB。");
-				const objectUrl = URL.createObjectURL(file);
-				let size: { width: number; height: number };
-				try {
-					size = await readImageSize(objectUrl);
-				} finally {
-					URL.revokeObjectURL(objectUrl);
-				}
+				const size = await readImageSize(file);
 				if (size.width > 30000 || size.height > 30000)
 					throw new Error("图片边长不能超过 30000 像素。");
 				const form = new FormData();
@@ -448,7 +442,7 @@ export function GalleryPage(): React.JSX.Element {
 												aria-label="上传相册照片"
 												disabled={!catalog.canSave || busy}
 												onChange={(event) => {
-													const files = event.target.files;
+													const files = Array.from(event.target.files || []);
 													void upload(files);
 													event.target.value = "";
 												}}
