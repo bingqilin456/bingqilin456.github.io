@@ -18,5 +18,9 @@
 	"src:assets/images/avatar-master.webp": "aaa4a9aaa5a7c1babd",
 	"src:assets/images/avatar.webp": "958e9a817c89b9aeb4",
 	"src:assets/images/logo.png": "5f585f4f4a4f5c555b",
-	"src:content/posts/eino-chatmodel-chattemplate-rag-embedding/cover.webp": "2c545d174450124051"
+	"src:content/posts/eino-chatmodel-chattemplate-rag-embedding/cover.webp": "2c545d174450124051",
+	"src:content/posts/persistent-segment-tree-kth-majority/cover.webp": "2530461828401a2c46",
+	"src:content/posts/persistent-segment-tree-kth-majority/kth-query.webp": "eff2f4f3f7fbeef5fb",
+	"src:content/posts/persistent-segment-tree-kth-majority/path-copy.webp": "f1f3f5f7fafce8f1f6",
+	"src:content/posts/persistent-segment-tree-kth-majority/strict-majority.webp": "e8edf2eef2f5f6f6f7"
 }
