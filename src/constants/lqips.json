@@ -22,5 +22,9 @@
 	"src:content/posts/persistent-segment-tree-kth-majority/cover.webp": "2530461828401a2c46",
 	"src:content/posts/persistent-segment-tree-kth-majority/kth-query.webp": "eff2f4f3f7fbeef5fb",
 	"src:content/posts/persistent-segment-tree-kth-majority/path-copy.webp": "f1f3f5f7fafce8f1f6",
-	"src:content/posts/persistent-segment-tree-kth-majority/strict-majority.webp": "e8edf2eef2f5f6f6f7"
+	"src:content/posts/persistent-segment-tree-kth-majority/strict-majority.webp": "e8edf2eef2f5f6f6f7",
+	"src:content/posts/persistent-tree-sweep-line-fenwick/cover.webp": "25354b2c34424c4646",
+	"src:content/posts/persistent-tree-sweep-line-fenwick/offline-fenwick.webp": "1c2a3e182537182235",
+	"src:content/posts/persistent-tree-sweep-line-fenwick/persistent-query.webp": "1c2a3e172439172436",
+	"src:content/posts/persistent-tree-sweep-line-fenwick/skyline-sweep.webp": "2737482a343f1e2a37"
 }
